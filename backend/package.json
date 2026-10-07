@@ -1,0 +1,18 @@
+{
+  "name": "kachnadocs-backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "KachnaDocs Discord OAuth2 identity backend. No persistence.",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "dependencies": {
+    "@discordjs/rest": "^2.6.3",
+    "discord-api-types": "^0.38.56"
+  }
+}
