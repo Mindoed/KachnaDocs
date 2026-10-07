@@ -150,15 +150,25 @@ async function completeLogin(req, res) {
   // bearer token in the browser, where any later script or extension could read
   // it; this endpoint's caller only needs the identity JSON.
   clearFlowCookies(res);
+  
+  // body is an array of { id, name, ... } guild objects; if the guilds call
+  // failed or returned nothing, it is not an array and the user is treated
+  // as a non-member rather than crashing the callback.
+  const guilds = Array.isArray(identity.guilds?.body) ? identity.guilds.body : [];
+  const isMember = guilds.some((guild) => guild.id === config.discord.guildId);
 
   return writeJson(res, 200, {
+    is_member_of_SU: isMember,
     stage: 'identity',
     // What was granted, as reported by Discord itself rather than inferred.
     granted_scope: tokens.scope ?? null,
     token_type: tokens.token_type ?? null,
     expires_in: tokens.expires_in ?? null,
     refresh_token_present: Boolean(tokens.refresh_token),
-    identity,
+    identity: {
+      me: identity?.me ?? null,
+      su_guild: guilds.find((guild) => guild.id === config.discord.guildId) ?? null,
+    },
   });
 }
 

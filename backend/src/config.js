@@ -68,6 +68,7 @@ function load() {
   const clientSecret = env.DISCORD_CLIENT_SECRET ?? '';
   const redirectUri = env.DISCORD_REDIRECT_URI ?? 'http://localhost:8787/callback';
   const publicOrigin = env.PUBLIC_ORIGIN ?? `http://localhost:${port}`;
+  const guildId = env.DISCORD_GUILD_ID ?? '';
 
   // Absent credentials are a supported state, not a crash: the server starts so
   // you can see what is missing instead of getting a stack trace. `token` will
@@ -78,10 +79,9 @@ function load() {
     discord: {
       clientId,
       clientSecret,
+      guildId,
       redirectUri,
-      // `identify` covers /users/@me, `guilds` covers /users/@me/guilds,
-      // `connections` covers the linked-account providers.
-      scopes: env.DISCORD_SCOPES ?? 'identify guilds connections',
+      scopes: env.DISCORD_SCOPES ?? 'identify guilds',
       endpoints: {
         authorize: 'https://discord.com/oauth2/authorize',
         token: 'https://discord.com/api/v10/oauth2/token',
