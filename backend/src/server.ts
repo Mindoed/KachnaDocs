@@ -21,28 +21,30 @@
  *   POST /identity      identity from an access token passed by the caller
  */
 
-import { createServer } from 'node:http';
-import { config } from './config.js';
+import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
+import { config } from './config.ts';
 import {
   HttpError,
+  asGuildList,
+  asUser,
   buildAuthorizeUrl,
   exchangeCode,
   fetchIdentity,
   randomToken,
-  refreshTokens,
-} from './discord.js';
+  type JsonObject,
+} from './discord.ts';
 
 const COOKIE_MAX_AGE = 600; // seconds; the flow should complete in well under this
 
 const server = createServer((req, res) => {
-  handle(req, res).catch((error) => {
+  handle(req, res).catch((error: unknown) => {
     // Last resort: a thrown error must still produce a parseable response
     // rather than a hung connection or an HTML stack trace.
     const status = error instanceof HttpError ? error.status : 500;
     writeJson(res, status, {
       error: status === 500 ? 'internal_error' : 'request_failed',
-      message: error?.message ?? String(error),
-      ...(error?.details ?? {}),
+      message: error instanceof Error ? error.message : String(error),
+      ...(error instanceof HttpError ? error.details ?? {} : {}),
     });
   });
 });
@@ -53,7 +55,7 @@ server.listen(config.port, () => {
   console.log(`  credentials: ${config.ready ? 'loaded' : 'MISSING — copy .env.example to .env'}`);
 });
 
-async function handle(req, res) {
+async function handle(req: IncomingMessage, res: ServerResponse): Promise<void> {
   const url = new URL(req.url ?? '/', config.publicOrigin);
 
   switch (`${req.method} ${url.pathname}`) {
@@ -73,7 +75,7 @@ async function handle(req, res) {
       });
 
     case 'GET /login':
-      return startLogin(req, res);
+      return startLogin(res);
 
     case 'GET /callback':
       return completeLogin(req, res);
@@ -94,12 +96,15 @@ async function handle(req, res) {
  * Begin the flow. Discord needs `state`; we need to check it on return, so it
  * goes into a cookie scoped to the callback.
  */
-async function startLogin(_req, res) {
+async function startLogin(res: ServerResponse): Promise<void> {
   const state = randomToken(24);
   const { url, verifier } = await buildAuthorizeUrl(state);
 
   const cookies = [cookie('kd_state', state), verifier ? cookie('kd_verifier', verifier) : null];
-  res.writeHead(302, { Location: url, 'Set-Cookie': cookies.filter(Boolean) });
+  res.writeHead(302, {
+    Location: url,
+    'Set-Cookie': cookies.filter((c): c is string => c !== null),
+  });
   res.end();
 }
 
@@ -111,12 +116,12 @@ async function startLogin(_req, res) {
  * error (31013 redirect mismatch, "invalid scope", etc.) is the point of this
  * stage of the project.
  */
-async function completeLogin(req, res) {
+async function completeLogin(req: IncomingMessage, res: ServerResponse): Promise<void> {
   const url = new URL(req.url ?? '/', config.publicOrigin);
   const cookies = readCookies(req);
 
   const returnedState = url.searchParams.get('state') ?? '';
-  const expectedState = cookies.kd_state ?? '';
+  const expectedState = cookies['kd_state'] ?? '';
 
   // Constant-shape comparison is not needed for a value the attacker already
   // sees in their own redirect, but absence and mismatch are distinct problems
@@ -143,22 +148,21 @@ async function completeLogin(req, res) {
   const code = url.searchParams.get('code');
   if (!code) throw new HttpError(400, 'No authorization code in callback');
 
-  const tokens = await exchangeCode(code, cookies.kd_verifier ?? null);
+  const tokens = await exchangeCode(code, cookies['kd_verifier'] ?? null);
   const identity = await fetchIdentity(tokens.access_token);
 
   // Tokens are cleared rather than returned. Returning them would put a live
   // bearer token in the browser, where any later script or extension could read
   // it; this endpoint's caller only needs the identity JSON.
   clearFlowCookies(res);
-  
-  // body is an array of { id, name, ... } guild objects; if the guilds call
-  // failed or returned nothing, it is not an array and the user is treated
-  // as a non-member rather than crashing the callback.
-  const guilds = Array.isArray(identity.guilds?.body) ? identity.guilds.body : [];
-  const isMember = guilds.some((guild) => guild.id === config.discord.guildId);
+
+  // The guilds call may have failed or returned nothing, so asGuildList gives []
+  // and the user is treated as a non-member rather than crashing the callback.
+  const guilds = asGuildList(identity.guilds);
+  const suGuild = guilds.find((guild) => guild.id === config.discord.guildId) ?? null;
 
   return writeJson(res, 200, {
-    is_member_of_SU: isMember,
+    is_member_of_SU: suGuild !== null,
     stage: 'identity',
     // What was granted, as reported by Discord itself rather than inferred.
     granted_scope: tokens.scope ?? null,
@@ -166,8 +170,8 @@ async function completeLogin(req, res) {
     expires_in: tokens.expires_in ?? null,
     refresh_token_present: Boolean(tokens.refresh_token),
     identity: {
-      me: identity?.me ?? null,
-      su_guild: guilds.find((guild) => guild.id === config.discord.guildId) ?? null,
+      me: asUser(identity.me),
+      su_guild: suGuild,
     },
   });
 }
@@ -178,28 +182,30 @@ async function completeLogin(req, res) {
  * Exists so you can test the identity shape without re-running the whole
  * browser flow every time: paste a token, get JSON.
  */
-async function identityFromAccessToken(req, res) {
+async function identityFromAccessToken(req: IncomingMessage, res: ServerResponse): Promise<void> {
   const body = await readBody(req);
-  let accessToken;
+  let accessToken: unknown;
   try {
-    accessToken = JSON.parse(body || '{}').access_token;
+    accessToken = (JSON.parse(body || '{}') as JsonObject).access_token;
   } catch {
     throw new HttpError(400, 'Request body must be JSON', {
       hint: 'Send {"access_token": "..."}',
     });
   }
-  if (!accessToken) throw new HttpError(400, 'access_token is required');
+  if (typeof accessToken !== 'string' || !accessToken) {
+    throw new HttpError(400, 'access_token is required');
+  }
 
   const identity = await fetchIdentity(accessToken);
   return writeJson(res, 200, { stage: 'identity', source: 'posted_token', identity });
 }
 
-function usage() {
+function usage(): string {
   const lines = [
     'KachnaDocs backend — Discord OAuth2 identity, no persistence.',
     '',
-    `Configure: copy backend/.env.example to backend/.env, then restart.`,
-    `Register this redirect URI in the Discord Developer Portal:`,
+    'Configure: copy backend/.env.example to backend/.env, then restart.',
+    'Register this redirect URI in the Discord Developer Portal:',
     `    ${config.discord.redirectUri}`,
     '',
     'Flow:',
@@ -226,17 +232,11 @@ function usage() {
  * HTTP helpers
  * ------------------------------------------------------------------ */
 
-function writeJson(res, status, value) {
-  const body = JSON.stringify(value, null, 2);
-  res.writeHead(status, {
-    'Content-Type': 'text/plain; charset=utf-8',
-    'Content-Length': Buffer.byteLength(body),
-    'Cache-Control': 'no-store',
-  });
-  res.end(body);
+function writeJson(res: ServerResponse, status: number, value: unknown): void {
+  sendText(res, status, JSON.stringify(value, null, 2));
 }
 
-function sendText(res, status, text) {
+function sendText(res: ServerResponse, status: number, text: string): void {
   res.writeHead(status, {
     'Content-Type': 'text/plain; charset=utf-8',
     'Content-Length': Buffer.byteLength(text),
@@ -245,25 +245,25 @@ function sendText(res, status, text) {
   res.end(text);
 }
 
-function cookie(name, value) {
+function cookie(name: string, value: string): string {
   return (
     `${name}=${encodeURIComponent(value)}; Path=/; HttpOnly; SameSite=Lax; ` +
     `Max-Age=${COOKIE_MAX_AGE}`
   );
 }
 
-function clearFlowCookies(res) {
+function clearFlowCookies(res: ServerResponse): void {
   res.setHeader('Set-Cookie', [cookie('kd_state', ''), cookie('kd_verifier', '')].map(removeExpired));
 }
 
-function removeExpired(c) {
+function removeExpired(c: string): string {
   return c.replace(/Max-Age=\d+/, 'Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT');
 }
 
-function readCookies(req) {
+function readCookies(req: IncomingMessage): Record<string, string> {
   const header = req.headers.cookie;
   if (!header) return {};
-  const out = {};
+  const out: Record<string, string> = {};
   for (const part of header.split(';')) {
     const eq = part.indexOf('=');
     if (eq === -1) continue;
@@ -274,11 +274,11 @@ function readCookies(req) {
 }
 
 /** Bounded read: a stray large upload should not exhaust memory. */
-function readBody(req, limit = 64 * 1024) {
+function readBody(req: IncomingMessage, limit = 64 * 1024): Promise<string> {
   return new Promise((resolve, reject) => {
-    const chunks = [];
+    const chunks: Buffer[] = [];
     let size = 0;
-    req.on('data', (chunk) => {
+    req.on('data', (chunk: Buffer) => {
       size += chunk.length;
       if (size > limit) {
         reject(new HttpError(413, 'Request body too large'));
