@@ -20,7 +20,7 @@ function handleAuth() {
       </CardHeader>
 
       <CardContent>
-        <Button @click="handleLogin">Login with Discord</Button>
+        <Button style="cursor: pointer;" @click="handleAuth">Login with Discord</Button>
       </CardContent>
     </Card>
   </div>
