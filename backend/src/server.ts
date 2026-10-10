@@ -3,8 +3,9 @@
  *
  * Deliberately bare: `node:http` with a hand-rolled route table rather than a
  * framework, because the whole job is four endpoints that move JSON around.
- * Responses are `text/plain` pretty-printed JSON, so the browser is the JSON
- * viewer and there is no UI to maintain yet.
+ * Everything is JSON (`text/plain` pretty-printed, so the browser is the JSON
+ * viewer) except `/callback`, which renders the identity into
+ * `frontend/idp.html` and answers with that page.
  *
  * Nothing is persisted. OAuth2 `state` and the PKCE verifier live in a temporary
  * cookie on the caller's browser — they must survive the redirect round-trip,
@@ -16,13 +17,16 @@
  *   GET  /              usage
  *   GET  /health        configuration status, no secrets
  *   GET  /login         begin the OAuth2 flow
- *   GET  /callback      complete it and return the identity JSON
+ *   GET  /callback      complete it and render the identity into frontend/idp.html
  *   GET  /identity      identity from a refresh token passed by the caller
  *   POST /identity      identity from an access token passed by the caller
  */
 
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
-import { config } from './config.ts';
+import { readFile } from 'node:fs/promises';
+import { config, HERE } from './config.ts';
+import { join } from 'node:path';
+import type { APIPartialGuild, APIUser } from 'discord-api-types/v10';
 import {
   HttpError,
   asGuildList,
@@ -153,15 +157,22 @@ async function completeLogin(req: IncomingMessage, res: ServerResponse): Promise
 
   // Tokens are cleared rather than returned. Returning them would put a live
   // bearer token in the browser, where any later script or extension could read
-  // it; this endpoint's caller only needs the identity JSON.
-  clearFlowCookies(res);
+  // it; the page this endpoint renders only needs the identity.
+  // clearFlowCookies(res);
 
   // The guilds call may have failed or returned nothing, so asGuildList gives []
   // and the user is treated as a non-member rather than crashing the callback.
   const guilds = asGuildList(identity.guilds);
   const suGuild = guilds.find((guild) => guild.id === config.discord.guildId) ?? null;
 
-  return writeJson(res, 200, {
+  // Serve frontend/idp.html with the identity rendered into it. The icons are
+  // the user's avatar and the SU guild icon; both CDN URLs are built here rather
+  // than in the page, so the hash-to-URL rules sit next to the types they read.
+  const me = asUser(identity.me);
+  const userIconUrl = avatarUrl(me);
+  const guildIconUrl = guildIcon(suGuild);
+
+  const payload = {
     is_member_of_SU: suGuild !== null,
     stage: 'identity',
     // What was granted, as reported by Discord itself rather than inferred.
@@ -170,10 +181,31 @@ async function completeLogin(req: IncomingMessage, res: ServerResponse): Promise
     expires_in: tokens.expires_in ?? null,
     refresh_token_present: Boolean(tokens.refresh_token),
     identity: {
-      me: asUser(identity.me),
+      me,
       su_guild: suGuild,
+      user_icon_url: userIconUrl,
+      guild_icon_url: guildIconUrl,
     },
-  });
+  };
+
+  // A missing frontend/idp.html 
+  // should not fail a login that already succeeded:
+  // fall back to the JSON the endpoint returned before the page existed.
+  let html: string;
+  try {
+    html = await renderIdpPage({
+      user_icon_url: userIconUrl,
+      user_display_name: me?.global_name ?? me?.username ?? 'Discord user',
+      guild_icon_url: guildIconUrl,
+      guild_name: suGuild?.name ?? null,
+      payload,
+    });
+  } catch (error) {
+    if (!(error instanceof Error) || (error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+    return writeJson(res, 200, payload);
+  }
+
+  return sendHtml(res, 200, html);
 }
 
 /**
@@ -210,7 +242,7 @@ function usage(): string {
     '',
     'Flow:',
     '    GET /login      redirect to Discord',
-    '    GET /callback   returns identity JSON as text',
+    '    GET /callback   renders frontend/idp.html with the identity',
     '',
     'Manual:',
     '    POST /identity  {"access_token": "..."} -> identity JSON',
@@ -229,6 +261,85 @@ function usage(): string {
 }
 
 /* ------------------------------------------------------------------ *
+ * Identity page rendering
+ * ------------------------------------------------------------------ */
+/** The shape the /callback page is rendered from. */
+interface IdpPage {
+  user_icon_url: string | null;
+  user_display_name: string;
+  guild_icon_url: string | null;
+  guild_name: string | null;
+  /** The full /callback JSON, shown verbatim in the `#json` div. */
+  payload: unknown;
+}
+
+/**
+ * `cdn.discord.com` icon URL for a user avatar, or null when none is set.
+ *
+ * A null `avatar` means the default avatar, which is not on the CDN path used
+ * here — the page falls back to hiding the image rather than loading a 404.
+ */
+function avatarUrl(user: APIUser | null): string | null {
+  if (!user?.avatar) return null;
+  const ext = user.avatar.startsWith('a_') ? 'gif' : 'png';
+  return `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.${ext}?size=128`;
+}
+
+/** Same for a guild icon. A null `icon` means the guild has no icon at all. */
+function guildIcon(guild: APIPartialGuild | null): string | null {
+  if (!guild?.icon) return null;
+  const ext = guild.icon.startsWith('a_') ? 'gif' : 'png';
+  return `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.${ext}?size=128`;
+}
+
+/**
+ * Read `frontend/idp.html` fresh on every request rather than caching it, so
+ * editing the page takes effect on the next reload. `HERE` is backend/src, so
+ * the project root is two levels up.
+ */
+async function readIdpTemplate(): Promise<string> {
+  return readFile(join(HERE, '..', '..', 'frontend', 'idp.html'), 'utf8');
+}
+
+/** An `<img>` only when Discord gave us a URL; an empty div beats a broken one. */
+function iconTag(url: string | null, alt: string): string {
+  if (!url) return '';
+  return `<img src="${escapeHtml(url)}" alt="${escapeHtml(alt)}" width="128" height="128" />`;
+}
+
+/**
+ * Fill the template's three divs.
+ *
+ * Every value originates from Discord and ends up in HTML, so each
+ * interpolation goes through {@link escapeHtml}. Filling by exact-div match
+ * rather than a marker comment keeps idp.html valid when opened on its own.
+ */
+async function renderIdpPage(page: IdpPage): Promise<string> {
+  const template = await readIdpTemplate();
+  const json = escapeHtml(JSON.stringify(page.payload, null, 2));
+
+  return template
+    .replace(
+      '<div id="user-icon"></div>',
+      `<div id="user-icon">${iconTag(page.user_icon_url, page.user_display_name)}</div>`,
+    )
+    .replace(
+      '<div id="guild-icon"></div>',
+      `<div id="guild-icon">${iconTag(page.guild_icon_url, page.guild_name ?? 'SU guild')}</div>`,
+    )
+    .replace('<div id="json"></div>', `<div id="json"><pre>${json}</pre></div>`);
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+/* ------------------------------------------------------------------ *
  * HTTP helpers
  * ------------------------------------------------------------------ */
 
@@ -243,6 +354,20 @@ function sendText(res: ServerResponse, status: number, text: string): void {
     'Cache-Control': 'no-store',
   });
   res.end(text);
+}
+
+/**
+ * The callback page carries the caller's own identity and no token, so
+ * `no-store` matters more here than elsewhere: a cached copy would let the next
+ * person at this browser read it.
+ */
+function sendHtml(res: ServerResponse, status: number, html: string): void {
+  res.writeHead(status, {
+    'Content-Type': 'text/html; charset=utf-8',
+    'Content-Length': Buffer.byteLength(html),
+    'Cache-Control': 'no-store',
+  });
+  res.end(html);
 }
 
 function cookie(name: string, value: string): string {
