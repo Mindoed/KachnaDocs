@@ -6,7 +6,7 @@ const router = createRouter({
     {
       path: '/auth',
       name: 'auth',
-      component: () => import('../../features/idp/views/IdpView.vue'),
+      component: () => import('../../features/auth/views/AuthView.vue'),
     },
     { path: '/', redirect: { name: 'auth' } },
   ],
