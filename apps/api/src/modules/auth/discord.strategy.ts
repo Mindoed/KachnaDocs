@@ -8,6 +8,7 @@ import {
   type DiscordProfile,
   type VerifyCallback,
 } from 'discord-strategy';
+
 import { AuthService } from './auth.service.js';
 
 @Injectable()
@@ -61,11 +62,15 @@ export class DiscordStrategy extends Strategy implements OnModuleInit {
 
       const profile = consume.profile();
 
-      this.logger.debug(`Guilds: ${JSON.stringify(profile.guilds, null, 2)}`);
+      // this.logger.debug(`Guilds: ${JSON.stringify(profile.guilds, null, 2)}`);
+      // this.logger.debug(`Profile: ${JSON.stringify(profile, null, 2)}`);
 
-      const member = profile.member?.[guildId];
-      if (!member) {
+      const filteredProfile = this.authService.filterProfile(guildId, profile);
+
+      if (!filteredProfile) {
         return verified(new UnauthorizedException('Not a member of the required Discord guild'));
+      } else {
+        this.logger.debug(`Member: ${JSON.stringify(filteredProfile, null, 2)}`);
       }
 
       const user = await this.authService.findOrCreateDiscordUser(profile);
@@ -73,7 +78,10 @@ export class DiscordStrategy extends Strategy implements OnModuleInit {
       // Fall back to the raw profile until upsertDiscordUser
       // returns a persisted user — passport fails the login on a
       // falsy user.
-      verified(null, user ?? profile);
+      return verified(
+        filteredProfile ? null : new UnauthorizedException('Failed to upsert Discord user'),
+        filteredProfile || null,
+      );
     } catch (error) {
       verified(
         error instanceof Error ? error : new Error('Discord membership verification failed'),

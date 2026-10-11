@@ -8,7 +8,7 @@ import { DiscordProfile } from 'discord-strategy';
 export class UsersService {
   constructor(private readonly config: ConfigService) {}
 
-  upsertDiscordUser(profile: DiscordProfile) {
+  async upsertDiscordUser(profile: DiscordProfile) {
     // Implementation for upserting a Discord user goes here
   }
 }
