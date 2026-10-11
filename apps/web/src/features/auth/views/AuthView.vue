@@ -1,14 +1,9 @@
 <script setup lang="ts">
 import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 function handleAuth() {
-  console.log('Login btn clicked')
+  window.location.href = 'http://localhost:3000/api/auth/discord'
 }
 </script>
 
@@ -20,7 +15,7 @@ function handleAuth() {
       </CardHeader>
 
       <CardContent>
-        <Button style="cursor: pointer;" @click="handleAuth">Login with Discord</Button>
+        <Button style="cursor: pointer" @click="handleAuth">Login with Discord</Button>
       </CardContent>
     </Card>
   </div>
