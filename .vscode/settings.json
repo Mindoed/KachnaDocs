@@ -1,0 +1,30 @@
+{
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "editor.detectIndentation": false,
+  "editor.rulers": [100],
+  "files.eol": "\n",
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "[typescript]": {
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true
+  },
+  "[javascript]": {
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true
+  },
+  "[vue]": {
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true
+  },
+  "[json]": {
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true
+  },
+  "[jsonc]": {
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true
+  },
+  "prettier.requireConfig": true
+}
