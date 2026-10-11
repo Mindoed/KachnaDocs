@@ -1,0 +1,34 @@
+{
+  "name": "@kachnadocs/shared",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Code and types shared between the KachnaDocs API and web client.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
+    "lint": "oxlint src/",
+    "test": "echo 'no tests' && exit 0"
+  },
+  "dependencies": {
+    "discord-strategy": "^2.5.0"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.2"
+  }
+}

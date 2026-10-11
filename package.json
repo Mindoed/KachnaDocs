@@ -4,11 +4,14 @@
   "description": "",
   "workspaces": [
     "apps/*",
-    "packages/*"
+    "shared"
   ],
   "scripts": {
     "dev:web": "npm run dev --workspace=web",
     "dev:api": "npm run start:dev --workspace=api",
+    "build:shared": "npm run build --workspace=@kachnadocs/shared",
+    "prepare": "npm run build:shared",
+    "prebuild": "npm run build:shared",
     "build": "npm run build --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",

@@ -17,6 +17,7 @@
     "format": "prettier --write --experimental-cli src/"
   },
   "dependencies": {
+    "@kachnadocs/shared": "*",
     "@lucide/vue": "^1.55.0",
     "@nestjs/mau": "0.0.6",
     "@tailwindcss/vite": "^4.3.3",
