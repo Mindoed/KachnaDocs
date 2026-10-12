@@ -1,14 +1,29 @@
 import { Injectable } from '@nestjs/common';
-import { PassportStrategy } from '@nestjs/passport';
-import { ConfigService } from '@nestjs/config';
+import type { DiscordProfile } from 'discord-strategy';
 
-import { DiscordProfile } from 'discord-strategy';
+export interface AppUser {
+  id: string;
+  username: string;
+  avatar?: string | null;
+}
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly config: ConfigService) {}
+  private readonly users = new Map<string, AppUser>();
 
-  async upsertDiscordUser(profile: DiscordProfile) {
-    // Implementation for upserting a Discord user goes here
+  async upsertDiscordUser(profile: DiscordProfile): Promise<AppUser> {
+    const user: AppUser = {
+      id: profile.id,
+      username: profile.username,
+      avatar: profile.avatar,
+    };
+
+    this.users.set(user.id, user);
+
+    return user;
+  }
+
+  async findById(id: string): Promise<AppUser | null> {
+    return this.users.get(id) ?? null;
   }
 }

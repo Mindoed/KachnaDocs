@@ -15,7 +15,7 @@ export class AuthService {
   }
 
   async findOrCreateDiscordUser(profile: DiscordProfile) {
-    return await this.usersService.upsertDiscordUser(profile);
+    await this.usersService.upsertDiscordUser(profile);
   }
 
   filterProfile(guildId: string, profile: DiscordProfile): DiscordData | null {

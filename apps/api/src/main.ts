@@ -21,11 +21,6 @@ async function bootstrap() {
       secret: config.getOrThrow<string>('SESSION_SECRET'),
       resave: false,
       saveUninitialized: false,
-      cookie: {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-      },
     }),
   );
 

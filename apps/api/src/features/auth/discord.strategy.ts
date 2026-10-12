@@ -62,9 +62,6 @@ export class DiscordStrategy extends Strategy implements OnModuleInit {
 
       const profile = consume.profile();
 
-      // this.logger.debug(`Guilds: ${JSON.stringify(profile.guilds, null, 2)}`);
-      // this.logger.debug(`Profile: ${JSON.stringify(profile, null, 2)}`);
-
       const filteredProfile = this.authService.filterProfile(guildId, profile);
 
       if (!filteredProfile) {
@@ -73,14 +70,14 @@ export class DiscordStrategy extends Strategy implements OnModuleInit {
         this.logger.debug(`Member: ${JSON.stringify(filteredProfile, null, 2)}`);
       }
 
-      const user = await this.authService.findOrCreateDiscordUser(profile);
+      const user_ = await this.authService.findOrCreateDiscordUser(profile);
 
-      // Fall back to the raw profile until upsertDiscordUser
-      // returns a persisted user — passport fails the login on a
-      // falsy user.
+      const user = filteredProfile;
+
+      // Using filteredProfile for now, replace with user after DTOs and DB is setup
       return verified(
-        filteredProfile ? null : new UnauthorizedException('Failed to upsert Discord user'),
-        filteredProfile || null,
+        user ? null : new UnauthorizedException('Failed to upsert Discord user'),
+        user || null,
       );
     } catch (error) {
       verified(

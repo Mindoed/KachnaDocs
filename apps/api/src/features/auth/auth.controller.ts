@@ -24,8 +24,20 @@ export class AuthController {
 
   @Get('discord/callback')
   @UseGuards(AuthGuard('discord'))
-  callback(@Res() res: Response) {
+  async callback(@Res() res: Response, @Req() req: Request) {
     this.logger.debug('Discord callback called:', res.locals.user);
+
+    await new Promise<void>((resolve, reject) => {
+      req.logIn(req.user!, (error: Error | null) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve();
+        }
+      });
+    });
+
+    this.logger.debug(`Authenticated: ${req.isAuthenticated()}`);
 
     return res.redirect('http://localhost:5173/dashboard');
   }
@@ -36,7 +48,14 @@ export class AuthController {
     //   return { user: null };
     // }
 
+    this.logger.debug('SessionID:', req.sessionID);
+    this.logger.debug(`Authenticated: ${req.isAuthenticated()}`);
+    this.logger.debug(`User: ${JSON.stringify(req.user)}`);
+
     const user = req.user as DiscordData | undefined;
-    return { user: user ?? null };
+    return {
+      authenticated: req.isAuthenticated(),
+      user: req.user ?? null,
+    };
   }
 }

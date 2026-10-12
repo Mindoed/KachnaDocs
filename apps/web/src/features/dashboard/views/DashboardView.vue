@@ -8,7 +8,7 @@ const error = ref<string | null>(null)
 
 onMounted(async () => {
   try {
-    const response = await fetch('http://localhost:3000/auth/me', {
+    const response = await fetch('http://localhost:3000/api/auth/me', {
       credentials: 'include',
     })
 

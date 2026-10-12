@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
-import { ConfigModule } from '@nestjs/config';
 
 import { AuthController } from './auth.controller.js';
 import { AuthService } from './auth.service.js';
 import { UsersModule } from '../users/users.module.js';
 import { DiscordStrategy } from './discord.strategy.js';
+import { SessionSerializer } from './session.serializer.js';
 
 @Module({
   imports: [
@@ -15,7 +15,7 @@ import { DiscordStrategy } from './discord.strategy.js';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, DiscordStrategy],
+  providers: [AuthService, DiscordStrategy, SessionSerializer],
   exports: [AuthService],
 })
 export class AuthModule {}
