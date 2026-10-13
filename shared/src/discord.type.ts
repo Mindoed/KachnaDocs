@@ -25,3 +25,5 @@ export interface DiscordUser {
 
 // NOTE: If you want to add more properties,
 //  look into the DiscordProfile interface from discord-strategy package
+//  and edit `filterProfile()` method in AuthService accordingly.
+//                                       ^--(api/src/features/auth/auth.service.ts)
