@@ -1,6 +1,7 @@
 import { Controller, Get, Redirect, Req, Res, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
 import { AuthService } from './auth.service.js';
 import type { Request, Response } from 'express';
@@ -8,7 +9,10 @@ import { DiscordUser } from '@kachnadocs/shared';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly appService: AuthService) {}
+  constructor(
+    private readonly appService: AuthService,
+    private readonly config: ConfigService,
+  ) {}
   private readonly logger = new Logger(AuthController.name);
 
   @Get()
@@ -39,7 +43,13 @@ export class AuthController {
 
     this.logger.debug(`Authenticated: ${req.isAuthenticated()}`);
 
-    return res.redirect('http://localhost:5173/dashboard');
+    // The session cookie for this origin is now in the browser's cookie jar,
+    // and it is shared across tabs — the opener's next credentialed fetch
+    // (GET /api/auth/me) will already be authenticated. The popup page below
+    // only needs to tell the opener "you're done", via postMessage.
+    const frontendUrl = this.config.getOrThrow<string>('FRONTEND_URL');
+
+    return res.type('html').send(this.appService.popupDonePage(frontendUrl, '/dashboard'));
   }
 
   @Get('me')
