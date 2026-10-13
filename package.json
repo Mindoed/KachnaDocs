@@ -17,6 +17,10 @@
     "lint": "npm run lint --workspaces --if-present",
     "format": "npm run format --workspaces --if-present"
   },
+  "devDependencies": {
+    "eslint": "^10.12.0",
+    "eslint-plugin-vue": "^10.11.1"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Mindoed/KachnaDocs.git"
