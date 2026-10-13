@@ -32,10 +32,10 @@ onMounted(async () => {
     <p v-else-if="error">{{ error }}</p>
 
     <div v-else-if="user">
-      <h1>Welcome, {{ user.username }}!</h1>
+      <h1>Welcome, {{ user.user.username }}!</h1>
 
-      <p>Internal ID: {{ user.id }}</p>
-      <p>Discord Avatar ID: {{ user.avatar }}</p>
+      <p>Internal ID: {{ user.user?.id }}</p>
+      <p>Discord Avatar ID: {{ user.user.avatar }}</p>
 
       <h2>Backend response</h2>
       <pre>{{ JSON.stringify(user, null, 2) }}</pre>
