@@ -2,6 +2,8 @@
 import { onMounted, onBeforeUnmount, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Button } from '@/components/ui/button'
+import { Spinner } from '@/components/ui/spinner'
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 /** Origin of the API the popup is sent to, and of the SPA that may postMessage back. */
@@ -48,7 +50,13 @@ onBeforeUnmount(() => window.removeEventListener('message', onMessage))
       </CardHeader>
 
       <CardContent>
-        <Button style="cursor: pointer" @click="handleAuth">Login with Discord</Button>
+        <Button v-if="!popup" style="cursor: pointer" @click="handleAuth"
+          >Login with Discord</Button
+        >
+        <Button v-if="popup" variant="outline" disabled>
+          <Spinner class="animate-spin" />
+          Login with Discord</Button
+        >
         <p v-if="error" class="mt-2 text-sm text-red-600">{{ error }}</p>
       </CardContent>
     </Card>
