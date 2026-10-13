@@ -57,12 +57,10 @@ export class DiscordStrategy extends Strategy implements OnModuleInit {
 
       await Promise.all([
         consume.guilds(),
-        // possible to fetch more data about the user
+        // possible to fetch more data about the user here
       ]);
 
-      const profile = consume.profile();
-
-      const filteredProfile = this.authService.filterProfile(guildId, profile);
+      const filteredProfile = this.authService.filterProfile(guildId, consume.profile());
 
       if (!filteredProfile) {
         return verified(new UnauthorizedException('Not a member of the required Discord guild'));
@@ -70,11 +68,11 @@ export class DiscordStrategy extends Strategy implements OnModuleInit {
         this.logger.debug(`Member: ${JSON.stringify(filteredProfile, null, 2)}`);
       }
 
-      const user_ = await this.authService.findOrCreateDiscordUser(profile);
-
-      const user = filteredProfile;
+      const user_ = await this.authService.findOrCreateDiscordUser(filteredProfile);
 
       // Using filteredProfile for now, replace with user after DTOs and DB is setup
+      const user = filteredProfile;
+
       return verified(
         user ? null : new UnauthorizedException('Failed to upsert Discord user'),
         user || null,

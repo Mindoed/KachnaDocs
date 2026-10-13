@@ -1,21 +1,21 @@
 import { Injectable } from '@nestjs/common';
-import type { DiscordProfile } from 'discord-strategy';
+import { ConfigService } from '@nestjs/config';
 
-export interface AppUser {
-  id: string;
-  username: string;
-  avatar?: string | null;
-}
+import type { DiscordData } from '@kachnadocs/shared';
 
 @Injectable()
 export class UsersService {
-  private readonly users = new Map<string, AppUser>();
+  private readonly users = new Map<string, DiscordData>();
 
-  async upsertDiscordUser(profile: DiscordProfile): Promise<AppUser> {
-    const user: AppUser = {
-      id: profile.id,
-      username: profile.username,
-      avatar: profile.avatar,
+  constructor(private readonly config: ConfigService) {}
+
+  async upsertDiscordUser(data: DiscordData): Promise<DiscordData> {
+    const user: DiscordData = {
+      id: data.id,
+      username: data.username,
+      avatar: data.avatar,
+      discriminator: data.discriminator,
+      guild: data.guild ?? null,
     };
 
     this.users.set(user.id, user);
@@ -23,7 +23,7 @@ export class UsersService {
     return user;
   }
 
-  async findById(id: string): Promise<AppUser | null> {
+  async findById(id: string): Promise<DiscordData | null> {
     return this.users.get(id) ?? null;
   }
 }

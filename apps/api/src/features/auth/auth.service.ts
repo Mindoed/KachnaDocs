@@ -1,10 +1,9 @@
 import { Injectable } from '@nestjs/common';
 
-import type { DiscordProfile } from 'discord-strategy';
-
 import type { DiscordData } from '@kachnadocs/shared';
 
 import { UsersService } from '../users/users.service.js';
+import { DiscordProfile } from 'discord-strategy';
 
 @Injectable()
 export class AuthService {
@@ -14,7 +13,7 @@ export class AuthService {
     return 'Hello World!';
   }
 
-  async findOrCreateDiscordUser(profile: DiscordProfile) {
+  async findOrCreateDiscordUser(profile: DiscordData) {
     await this.usersService.upsertDiscordUser(profile);
   }
 
@@ -29,7 +28,12 @@ export class AuthService {
 
     return {
       ...profile,
-      guild: guild,
+      guild: {
+        id: guild.id,
+        name: guild.name,
+        icon: guild.icon ?? null,
+        banner: guild.banner ?? null,
+      },
     };
   }
 }
