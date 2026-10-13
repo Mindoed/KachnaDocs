@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "@kachnadocs/shared": "*",
-    "@lucide/vue": "^1.55.0",
+    "@lucide/vue": "^1.56.0",
     "@nestjs/mau": "0.0.6",
     "@tailwindcss/vite": "^4.3.3",
     "@vueuse/core": "^14.4.0",

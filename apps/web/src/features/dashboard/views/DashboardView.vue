@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import type { DiscordUser } from '@kachnadocs/shared'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
 /** Shape of GET /api/auth/me — the user is nested under `user`. */
 interface MeResponse {
@@ -43,11 +44,25 @@ onMounted(async () => {
     <p v-else-if="error">{{ error }}</p>
 
     <div v-else-if="user">
-      <h1>Welcome, {{ user.username }}!</h1>
+      <h1 style="display: flex; column-gap: 10px">
+        Welcome, {{ user.username }}!
+        <Avatar>
+          <AvatarImage
+            :src="`https://cdn.discordapp.com/avatars/${user!.id}/${user!.avatar}.png`"
+          /><AvatarFallback>{{ user!.username.substring(0, 2).toUpperCase() }}</AvatarFallback>
+        </Avatar>
+      </h1>
 
-      <p>Internal ID: {{ user.id }}</p>
-      <p>Discord Avatar ID: {{ user.avatar }}</p>
-      <p>Guild Icon ID: {{ user.guild?.icon }}</p>
+      <p style="display: flex; column-gap: 10px">
+        Guild Icon ID: {{ user!.guild?.icon }}
+        <Avatar>
+          <AvatarImage
+            :src="`https://cdn.discordapp.com/icons/${user!.guild?.id}/${user!.guild?.icon}.png`"
+          /><AvatarFallback>{{
+            user!.guild?.name.substring(0, 2).toUpperCase() ?? 'GD'
+          }}</AvatarFallback>
+        </Avatar>
+      </p>
 
       <h2>Backend response</h2>
       <pre>{{ JSON.stringify(user, null, 2) }}</pre>
