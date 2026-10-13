@@ -4,7 +4,7 @@ import { Logger } from '@nestjs/common';
 
 import { AuthService } from './auth.service.js';
 import type { Request, Response } from 'express';
-import { DiscordData } from '@kachnadocs/shared';
+import { DiscordUser } from '@kachnadocs/shared';
 
 @Controller('auth')
 export class AuthController {
@@ -48,11 +48,11 @@ export class AuthController {
     //   return { user: null };
     // }
 
-    this.logger.debug('SessionID:', req.sessionID);
+    this.logger.debug('SessionID:' + req.sessionID);
     this.logger.debug(`Authenticated: ${req.isAuthenticated()}`);
     this.logger.debug(`User: ${JSON.stringify(req.user)}`);
 
-    const user = req.user as DiscordData | undefined;
+    const user = req.user as DiscordUser | undefined;
     return {
       authenticated: req.isAuthenticated(),
       user: req.user ?? null,

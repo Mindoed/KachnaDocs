@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import type { DiscordData } from '@kachnadocs/shared'
+import type { DiscordUser } from '@kachnadocs/shared'
 
-const user = ref<DiscordData | null>(null)
+const data = ref<DiscordUser | null>(null)
 const loading = ref(true)
 const error = ref<string | null>(null)
 
@@ -16,7 +16,7 @@ onMounted(async () => {
       throw new Error(`HTTP ${response.status}`)
     }
 
-    user.value = await response.json()
+    data.value = await response.json()
   } catch {
     error.value = 'Could not load authenticated user.'
   } finally {
@@ -31,15 +31,15 @@ onMounted(async () => {
 
     <p v-else-if="error">{{ error }}</p>
 
-    <div v-else-if="user">
-      <h1>Welcome, {{ user.user.username }}!</h1>
+    <div v-else-if="data">
+      <h1>Welcome, {{ data.username }}!</h1>
 
-      <p>Internal ID: {{ user.user.id }}</p>
-      <p>Discord Avatar ID: {{ user.user.avatar }}</p>
-      <p>Guild Icon ID: {{ user.user.guild?.icon }}</p>
+      <p>Internal ID: {{ data.id }}</p>
+      <p>Discord Avatar ID: {{ data.avatar }}</p>
+      <p>Guild Icon ID: {{ data.guild?.icon }}</p>
 
       <h2>Backend response</h2>
-      <pre>{{ JSON.stringify(user, null, 2) }}</pre>
+      <pre>{{ JSON.stringify(data, null, 2) }}</pre>
     </div>
   </main>
 </template>

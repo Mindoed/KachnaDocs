@@ -1,16 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import type { DiscordData } from '@kachnadocs/shared';
+import type { DiscordUser } from '@kachnadocs/shared';
 
 @Injectable()
 export class UsersService {
-  private readonly users = new Map<string, DiscordData>();
+  private readonly users = new Map<string, DiscordUser>();
 
   constructor(private readonly config: ConfigService) {}
 
-  async upsertDiscordUser(data: DiscordData): Promise<DiscordData> {
-    const user: DiscordData = {
+  async upsertDiscordUser(data: DiscordUser): Promise<DiscordUser> {
+    const user: DiscordUser = {
       id: data.id,
       username: data.username,
       avatar: data.avatar,
@@ -23,7 +23,7 @@ export class UsersService {
     return user;
   }
 
-  async findById(id: string): Promise<DiscordData | null> {
+  async findById(id: string): Promise<DiscordUser | null> {
     return this.users.get(id) ?? null;
   }
 }

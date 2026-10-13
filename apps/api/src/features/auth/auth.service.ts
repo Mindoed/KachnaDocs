@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
-import type { DiscordData } from '@kachnadocs/shared';
+import type { DiscordUser } from '@kachnadocs/shared';
 
 import { UsersService } from '../users/users.service.js';
 import { DiscordProfile } from 'discord-strategy';
@@ -13,11 +13,11 @@ export class AuthService {
     return 'Hello World!';
   }
 
-  async findOrCreateDiscordUser(profile: DiscordData) {
+  async findOrCreateDiscordUser(profile: DiscordUser) {
     await this.usersService.upsertDiscordUser(profile);
   }
 
-  filterProfile(guildId: string, profile: DiscordProfile): DiscordData | null {
+  filterProfile(guildId: string, profile: DiscordProfile): DiscordUser | null {
     const guild = profile.guilds?.find((g: { id: string }) => g.id === guildId);
     if (!guild) {
       return null;
@@ -27,7 +27,10 @@ export class AuthService {
     delete profile.guilds;
 
     return {
-      ...profile,
+      id: profile.id,
+      username: profile.username,
+      avatar: profile.avatar ?? null,
+      discriminator: profile.discriminator,
       guild: {
         id: guild.id,
         name: guild.name,
