@@ -29,7 +29,7 @@ onMounted(async () => {
     }
 
     user.value = body.user
-  } catch (err: Error | unknown) {
+  } catch {
     error.value = 'Could not load authenticated user.'
   } finally {
     loading.value = false
