@@ -23,8 +23,12 @@ onMounted(async () => {
     }
 
     const body = (await response.json()) as MeResponse
+    if (!body.authenticated) {
+      throw new Error('User is not authenticated.')
+    }
+
     user.value = body.user
-  } catch {
+  } catch (err: Error | unknown) {
     error.value = 'Could not load authenticated user.'
   } finally {
     loading.value = false
