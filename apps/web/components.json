@@ -5,7 +5,7 @@
   "typescript": true,
   "tailwind": {
     "config": "",
-    "css": "src/styles/main.css",
+    "css": "src/style/main.css",
     "baseColor": "olive",
     "cssVariables": true,
     "prefix": ""
