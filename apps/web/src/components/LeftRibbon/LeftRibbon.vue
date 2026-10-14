@@ -9,19 +9,21 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuBadge,
 } from '@/components/ui/sidebar'
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import Avatar from './ui/avatar/Avatar.vue'
-import AvatarImage from './ui/avatar/AvatarImage.vue'
-import AvatarFallback from './ui/avatar/AvatarFallback.vue'
+import Avatar from '../ui/avatar/Avatar.vue'
+import AvatarImage from '../ui/avatar/AvatarImage.vue'
+import AvatarFallback from '../ui/avatar/AvatarFallback.vue'
 
 import { DiscordAvatar, DiscordIcon } from '@kachnadocs/shared'
-import SidebarFooter from './ui/sidebar/SidebarFooter.vue'
+import SidebarFooter from '../ui/sidebar/SidebarFooter.vue'
 
 import { ref, onMounted } from 'vue'
 import type { DiscordUser } from '@kachnadocs/shared'
-import SidebarHeader from './ui/sidebar/SidebarHeader.vue'
+import SidebarHeader from '../ui/sidebar/SidebarHeader.vue'
+import SidebarSeparator from '../ui/sidebar/SidebarSeparator.vue'
 
 // Menu items.
 const items = [
@@ -96,6 +98,7 @@ onMounted(async () => {
         <AvatarFallback>JD</AvatarFallback>
       </Avatar>
     </SidebarHeader>
+    <SidebarSeparator class="mx-auto" />
     <SidebarContent>
       <SidebarGroup>
         <SidebarGroupLabel>Application</SidebarGroupLabel>
@@ -109,6 +112,7 @@ onMounted(async () => {
                       <a :href="item.url">
                         <component :is="item.icon" />
                       </a>
+                      <SidebarMenuBadge>24</SidebarMenuBadge>
                     </SidebarMenuButton>
                   </TooltipTrigger>
                   <TooltipContent side="right">
@@ -122,6 +126,7 @@ onMounted(async () => {
       </SidebarGroup>
     </SidebarContent>
     <SidebarFooter>
+      <SidebarSeparator class="mx-auto" />
       <Avatar>
         <AvatarImage :src="DiscordAvatar.getUrl(user?.id, user?.avatar)" />
         <AvatarFallback>JD</AvatarFallback>

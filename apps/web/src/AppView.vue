@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import LeftRibbon from '@/components/LeftRibbon.vue'
+import LeftRibbon from '@/components/LeftRibbon/LeftRibbon.vue'
 import { SidebarProvider } from '@/components/ui/sidebar'
 </script>
 
