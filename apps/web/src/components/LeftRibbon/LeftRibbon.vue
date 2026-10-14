@@ -17,13 +17,13 @@ import Avatar from '../ui/avatar/Avatar.vue'
 import AvatarImage from '../ui/avatar/AvatarImage.vue'
 import AvatarFallback from '../ui/avatar/AvatarFallback.vue'
 
-import { DiscordAvatar, DiscordIcon } from '@kachnadocs/shared'
-import SidebarFooter from '../ui/sidebar/SidebarFooter.vue'
+import { DiscordIcon } from '@kachnadocs/shared'
 
 import { ref, onMounted } from 'vue'
 import type { DiscordUser } from '@kachnadocs/shared'
 import SidebarHeader from '../ui/sidebar/SidebarHeader.vue'
 import SidebarSeparator from '../ui/sidebar/SidebarSeparator.vue'
+import RibbonFooter from './RibbonFooter.vue'
 
 // Menu items.
 const items = [
@@ -125,12 +125,6 @@ onMounted(async () => {
         </SidebarGroupContent>
       </SidebarGroup>
     </SidebarContent>
-    <SidebarFooter>
-      <SidebarSeparator class="mx-auto" />
-      <Avatar>
-        <AvatarImage :src="DiscordAvatar.getUrl(user?.id, user?.avatar)" />
-        <AvatarFallback>JD</AvatarFallback>
-      </Avatar>
-    </SidebarFooter>
+    <RibbonFooter :user="user" />
   </Sidebar>
 </template>
