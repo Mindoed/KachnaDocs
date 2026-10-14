@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import LeftRibbon from '@/components/LeftRibbon/LeftRibbon.vue'
+import TitleBar from '@/components/TitleBar/TitleBar.vue'
 import { SidebarProvider } from '@/components/ui/sidebar'
 </script>
 
 <template>
-  <SidebarProvider :open="false">
-    <LeftRibbon />
-    <main>
-      <slot />
-    </main>
-  </SidebarProvider>
+  <main class="overflow-x-clip">
+    <SidebarProvider :open="false">
+      <LeftRibbon />
+      <TitleBar />
+    </SidebarProvider>
+    <slot />
+  </main>
 </template>

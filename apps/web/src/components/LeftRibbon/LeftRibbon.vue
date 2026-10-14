@@ -46,8 +46,6 @@ interface MeResponse {
 }
 
 const user = ref<DiscordUser | null>(null)
-const loading = ref(true)
-const error = ref<string | null>(null)
 
 onMounted(async () => {
   try {
@@ -68,9 +66,6 @@ onMounted(async () => {
     console.log('Authenticated user loaded:', user.value)
   } catch {
     console.error('Could not load authenticated user.')
-    error.value = 'Could not load authenticated user.'
-  } finally {
-    loading.value = false
   }
 })
 </script>
