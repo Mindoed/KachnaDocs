@@ -1,29 +1,14 @@
 <script setup lang="ts">
-import { Calendar, Home, Inbox, Search, Settings } from '@lucide/vue'
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarMenuBadge,
-} from '@/components/ui/sidebar'
-
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import Avatar from '../ui/avatar/Avatar.vue'
-import AvatarImage from '../ui/avatar/AvatarImage.vue'
-import AvatarFallback from '../ui/avatar/AvatarFallback.vue'
-
-import { DiscordIcon } from '@kachnadocs/shared'
-
 import { ref, onMounted } from 'vue'
+import { Calendar, Home, Inbox, Search, Settings } from '@lucide/vue'
+import { Sidebar } from '@/components/ui/sidebar'
+
 import type { DiscordUser } from '@kachnadocs/shared'
-import SidebarHeader from '../ui/sidebar/SidebarHeader.vue'
+
 import SidebarSeparator from '../ui/sidebar/SidebarSeparator.vue'
 import RibbonFooter from './RibbonFooter.vue'
+import RibbonHeader from './RibbonHeader.vue'
+import RibbonContent from './RibbonContent.vue'
 
 // Menu items.
 const items = [
@@ -92,39 +77,9 @@ onMounted(async () => {
 
 <template>
   <Sidebar collapsible="icon">
-    <SidebarHeader>
-      <Avatar class="rounded-sm size-7 mx-auto">
-        <AvatarImage :src="DiscordIcon.getUrl(user?.guild.id, user?.guild.icon)" />
-        <AvatarFallback>JD</AvatarFallback>
-      </Avatar>
-    </SidebarHeader>
+    <RibbonHeader :user="user" />
     <SidebarSeparator class="mx-auto" />
-    <SidebarContent>
-      <SidebarGroup>
-        <SidebarGroupLabel>Application</SidebarGroupLabel>
-        <SidebarGroupContent>
-          <TooltipProvider>
-            <SidebarMenu>
-              <SidebarMenuItem v-for="item in items" :key="item.title">
-                <Tooltip>
-                  <TooltipTrigger as-child>
-                    <SidebarMenuButton as-child>
-                      <a :href="item.url">
-                        <component :is="item.icon" />
-                      </a>
-                      <SidebarMenuBadge>24</SidebarMenuBadge>
-                    </SidebarMenuButton>
-                  </TooltipTrigger>
-                  <TooltipContent side="right">
-                    <p>{{ item.title }}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </TooltipProvider>
-        </SidebarGroupContent>
-      </SidebarGroup>
-    </SidebarContent>
+    <RibbonContent :items="items" />
     <RibbonFooter :user="user" />
   </Sidebar>
 </template>
