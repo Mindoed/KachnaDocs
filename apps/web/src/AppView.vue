@@ -1,7 +1,13 @@
-<script lang="ts">
-console.log('Hello world')
+<script setup lang="ts">
+import LeftRibbon from '@/components/LeftRibbon.vue'
+import { SidebarProvider } from '@/components/ui/sidebar'
 </script>
 
 <template>
-  <main></main>
+  <SidebarProvider :open="false">
+    <LeftRibbon />
+    <main>
+      <slot />
+    </main>
+  </SidebarProvider>
 </template>
