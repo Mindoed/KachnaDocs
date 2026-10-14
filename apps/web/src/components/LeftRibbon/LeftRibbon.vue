@@ -66,6 +66,8 @@ onMounted(async () => {
     console.log('Authenticated user loaded:', user.value)
   } catch {
     console.error('Could not load authenticated user.')
+
+    window.location.href = '/auth'
   }
 })
 </script>

@@ -35,7 +35,7 @@ function onMessage(event: MessageEvent) {
 
   popup.value?.close()
   popup.value = null
-  void router.push({ name: 'dashboard' })
+  void router.push({ name: 'home' })
 }
 
 onMounted(() => window.addEventListener('message', onMessage))

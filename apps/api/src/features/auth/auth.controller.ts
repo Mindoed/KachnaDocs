@@ -49,7 +49,7 @@ export class AuthController {
     // only needs to tell the opener "you're done", via postMessage.
     const frontendUrl = this.config.getOrThrow<string>('FRONTEND_URL');
 
-    return res.type('html').send(this.appService.popupDonePage(frontendUrl, '/dashboard'));
+    return res.type('html').send(this.appService.popupDonePage(frontendUrl, '/'));
   }
 
   @Get('me')
