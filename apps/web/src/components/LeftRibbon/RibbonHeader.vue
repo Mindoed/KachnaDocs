@@ -10,7 +10,7 @@ defineProps<{
 
 <template>
   <SidebarHeader>
-    <Avatar class="rounded-sm size-7 mx-auto">
+    <Avatar class="rounded-sm size-7 m-auto">
       <AvatarImage :src="DiscordIcon.getUrl(user?.guild.id, user?.guild.icon)" />
       <AvatarFallback>G</AvatarFallback>
     </Avatar>

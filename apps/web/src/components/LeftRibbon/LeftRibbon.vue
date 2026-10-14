@@ -5,7 +5,6 @@ import { Sidebar } from '@/components/ui/sidebar'
 
 import type { DiscordUser } from '@kachnadocs/shared'
 
-import SidebarSeparator from '../ui/sidebar/SidebarSeparator.vue'
 import RibbonFooter from './RibbonFooter.vue'
 import RibbonHeader from './RibbonHeader.vue'
 import RibbonContent from './RibbonContent.vue'
@@ -75,7 +74,6 @@ onMounted(async () => {
 <template>
   <Sidebar collapsible="icon">
     <RibbonHeader :user="user" />
-    <SidebarSeparator class="mx-auto" />
     <RibbonContent :items="items" />
     <RibbonFooter :user="user" />
   </Sidebar>

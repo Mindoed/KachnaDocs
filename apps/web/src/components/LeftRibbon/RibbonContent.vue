@@ -5,7 +5,6 @@ import {
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarMenu,
-  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
@@ -35,7 +34,6 @@ defineProps<{
                     <a :href="item.url">
                       <component :is="item.icon" />
                     </a>
-                    <SidebarMenuBadge>24</SidebarMenuBadge>
                   </SidebarMenuButton>
                 </TooltipTrigger>
                 <TooltipContent side="right">

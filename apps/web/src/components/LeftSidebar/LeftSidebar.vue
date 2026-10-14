@@ -22,9 +22,11 @@ const props = defineProps<{ open?: boolean }>()
 
 // w-0 overrides the base w-(--sidebar-width); tailwind-merge resolves the conflict because
 // this lands after the base classes in Sidebar's own cn() call.
+// Same offset as the ribbon: the TitleBar occupies the top --titlebar-height of the viewport,
+// so this panel sticks below it and is that much shorter.
 const sidebarClass = computed(() =>
   cn(
-    'sticky top-0 h-svh overflow-hidden transition-[width] duration-200 ease-linear',
+    'sticky top-(--titlebar-height) h-[calc(100svh-var(--titlebar-height))] overflow-hidden transition-[width] duration-200 ease-linear',
     props.open ? 'border-r' : 'w-0 border-r-0',
   ),
 )

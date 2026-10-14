@@ -7,7 +7,7 @@ import { Search } from '@lucide/vue'
 import { ButtonGroup } from '../ui/button-group'
 import { Button } from '../ui/button'
 
-import { ArrowLeft, ArrowRight, PanelLeft } from '@lucide/vue'
+import { ArrowLeft, ArrowRight, PanelLeft, PanelLeftClose } from '@lucide/vue'
 
 // The ui SidebarTrigger can't be used here: it calls the shared provider's toggleSidebar,
 // which belongs to the ribbon. AppView owns the LeftSidebar's own state and forwards it back.
@@ -27,23 +27,24 @@ whenever(meta_j!, () => {
 </script>
 
 <template>
-  <!-- Fixed to the viewport, so the bar spans the window width and adds no scroll. -->
-  <div class="fixed inset-x-0 top-0 z-20 h-11">
+  <!-- Fixed to the viewport, so the bar spans the window width and adds no scroll. The
+       ribbon, the sidebar and the page body all start below --titlebar-height (AppView). -->
+  <div class="border-border fixed inset-x-0 top-0 z-20 h-(--titlebar-height) border-b">
     <!-- At the content edge: clear of the 3rem ribbon rail, plus the sidebar while it is
          open. The provider's width vars are inherited here even though this bar is fixed. -->
     <Button
       variant="ghost"
-      size="xs"
+      size="icon"
       aria-label="Toggle sidebar"
-      :class="[
-        'absolute top-1/2 -translate-y-1/2 transition-[left] duration-200 ease-linear',
-        sidebarOpen
-          ? 'left-[calc(var(--sidebar-width-icon)+var(--sidebar-width)+0.5rem)]'
-          : 'left-[calc(var(--sidebar-width-icon)+0.5rem)]',
-      ]"
+      :class="'absolute top-1/2 -translate-y-1/2' + ' left-13'"
       @click="emit('toggleSidebar')"
     >
-      <PanelLeft />
+      <div v-if="!sidebarOpen">
+        <PanelLeft />
+      </div>
+      <div v-else>
+        <PanelLeftClose />
+      </div>
     </Button>
     <!-- Anchored to the InputGroup's left edge: that box is centred and w-1/4, so its
          left edge sits 5/8 of the bar in from the right. mr-2 is the gap. -->
