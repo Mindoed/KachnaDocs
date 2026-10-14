@@ -3,19 +3,26 @@ import { ref } from 'vue'
 
 import { InputGroup, InputGroupInput, InputGroupAddon } from '@/components/ui/input-group'
 import { useMagicKeys, whenever } from '@vueuse/core'
-import { Search } from '@lucide/vue'
 import { ButtonGroup } from '../ui/button-group'
 import { Button } from '../ui/button'
 
-import { ArrowLeft, ArrowRight, PanelLeft, PanelLeftClose } from '@lucide/vue'
+import {
+  ArrowLeft,
+  ArrowRight,
+  PanelLeft,
+  PanelLeftClose,
+  PanelRight,
+  PanelRightClose,
+  Search,
+} from '@lucide/vue'
 
 // The ui SidebarTrigger can't be used here: it calls the shared provider's toggleSidebar,
 // which belongs to the ribbon. AppView owns the LeftSidebar's own state and forwards it back.
-const emit = defineEmits<{ toggleSidebar: [] }>()
+const emit = defineEmits<{ toggleLeftSidebar: []; toggleRightSidebar: [] }>()
 
 // Drives the trigger's left offset so it sits at the content edge: the bar is viewport-fixed,
 // so it must clear the 3rem ribbon rail plus the 16rem sidebar while that is open.
-defineProps<{ sidebarOpen?: boolean }>()
+defineProps<{ leftSidebarOpen?: boolean; rightSidebarOpen?: boolean }>()
 
 const open = ref(false)
 
@@ -37,9 +44,9 @@ whenever(meta_j!, () => {
       size="icon"
       aria-label="Toggle sidebar"
       :class="'absolute top-1/2 -translate-y-1/2' + ' left-13'"
-      @click="emit('toggleSidebar')"
+      @click="emit('toggleLeftSidebar')"
     >
-      <div v-if="!sidebarOpen">
+      <div v-if="!leftSidebarOpen">
         <PanelLeft />
       </div>
       <div v-else>
@@ -59,5 +66,20 @@ whenever(meta_j!, () => {
         <Search />
       </InputGroupAddon>
     </InputGroup>
+
+    <Button
+      variant="ghost"
+      size="icon"
+      aria-label="Toggle sidebar"
+      :class="'absolute top-1/2 -translate-y-1/2' + ' right-1'"
+      @click="emit('toggleRightSidebar')"
+    >
+      <div v-if="!rightSidebarOpen">
+        <PanelRight />
+      </div>
+      <div v-else>
+        <PanelRightClose />
+      </div>
+    </Button>
   </div>
 </template>
