@@ -1,0 +1,30 @@
+# Anything listed here never enters the build context.
+# The base stage COPYs the manifests it needs explicitly.
+node_modules
+**/node_modules
+dist
+**/dist
+build
+tmp
+tmp
+
+.git
+.github
+.env
+.env.*
+!.env.example
+*.log
+npm-debug.log*
+
+# Not needed inside the image
+apps/web/e2e
+apps/web/playwright-report
+apps/web/test-results
+apps/api/test
+notes.md
+.notes.md
+README.md
+**/README.md
+docker-compose.yml
+Dockerfile
+.dockerignore

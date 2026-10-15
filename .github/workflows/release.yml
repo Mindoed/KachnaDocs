@@ -20,9 +20,25 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build and push image
+      - name: Build and push api image
         uses: docker/build-push-action@v7
         with:
           context: .
+          target: api
           push: true
-          tags: ghcr.io/su-fit-vut/KachnaDocs:latest
+          tags: |
+            ghcr.io/su-fit-vut/kachnadocs-api:latest
+            ghcr.io/su-fit-vut/kachnadocs-api:${{ github.ref_name }}
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,scope=api,mode=max
+      - name: Build and push web image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          target: web
+          push: true
+          tags: |
+            ghcr.io/su-fit-vut/kachnadocs-web:latest
+            ghcr.io/su-fit-vut/kachnadocs-web:${{ github.ref_name }}
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,scope=web,mode=max

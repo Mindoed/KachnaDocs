@@ -1,0 +1,41 @@
+# Local/production-like stack built from the root Dockerfile.
+#   docker compose up --build
+# web (nginx, port 8080) serves the SPA and proxies /api to api:3000.
+# Real environment values come from the .env file next to this one — see
+# apps/api/.env.example for the variables the api process needs.
+
+services:
+  api:
+    build:
+      context: .
+      target: api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      # A container has no on-disk .env, so everything comes from here.
+      # A process env var always outranks any file value.
+      # YAML-level quotes make these unambiguous strings; the quotes are
+      # stripped by the YAML parser before interpolation. Do NOT add quotes
+      # inside the ${...} braces — compose passes a quoted default through
+      # verbatim, quote characters and all, landing in the container's env.
+      DISCORD_CLIENT_ID: "${DISCORD_CLIENT_ID:?set DISCORD_CLIENT_ID in .env}"
+      DISCORD_CLIENT_SECRET: "${DISCORD_CLIENT_SECRET:?set DISCORD_CLIENT_SECRET in .env}"
+      DISCORD_GUILD_ID: "${DISCORD_GUILD_ID}"
+      DISCORD_CALLBACK_URL: "${DISCORD_CALLBACK_URL:-http://localhost:8080/api/auth/discord/callback}"
+      DISCORD_SCOPES: "${DISCORD_SCOPES:-identify guilds}"
+      DISCORD_USE_PKCE: "${DISCORD_USE_PKCE:-false}"
+      SESSION_SECRET: "${SESSION_SECRET:?set SESSION_SECRET in .env}"
+      FRONTEND_URL: "${FRONTEND_URL:-http://localhost:8080}"
+    expose:
+      - "3000"
+
+  web:
+    build:
+      context: .
+      target: web
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    depends_on:
+      - api
