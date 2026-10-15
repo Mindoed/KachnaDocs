@@ -7,6 +7,7 @@ name: Sync to org repo
 #                                      without it a compare URL is printed instead.
 
 on:
+  workflow_dispatch:
   workflow_run:
     workflows: ["CI"]
     types:
