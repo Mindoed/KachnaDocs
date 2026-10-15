@@ -1,28 +1,59 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { SidebarProvider } from '@/components/ui/sidebar'
 import LeftRibbon from '@/components/LeftRibbon/LeftRibbon.vue'
 import LeftSidebar from '@/components/LeftSidebar/LeftSidebar.vue'
 import RightSidebar from '@/components/RightSidebar/RightSidebar.vue'
 import TitleBar from '@/components/TitleBar/TitleBar.vue'
-import { SidebarProvider } from '@/components/ui/sidebar'
 import EmptyPage from './components/EmptyPage/EmptyPage.vue'
+import ResizablePanelGroup from './components/ui/resizable/ResizablePanelGroup.vue'
+import ResizablePanel from './components/ui/resizable/ResizablePanel.vue'
+import ResizableHandle from './components/ui/resizable/ResizableHandle.vue'
+import { useCollapsiblePanel } from './components/ui/resizable/useCollapsiblePanel'
+import type { ResizablePanelHandle } from './components/ui/resizable/useCollapsiblePanel'
 
 // Separate from the SidebarProvider's `open`, which drives the ribbon only.
 const leftSidebarOpen = ref(true)
 const rightSidebarOpen = ref(true)
+
+// The panels own the sidebar widths: dragging a handle changes them, and the toggles above only
+// collapse/expand around the size the last drag left. useCollapsiblePanel keeps flag and panel
+// in step in both directions.
+const leftPanel = ref<ResizablePanelHandle | null>(null)
+const rightPanel = ref<ResizablePanelHandle | null>(null)
+
+const { onResize: onLeftPanelResize } = useCollapsiblePanel(leftSidebarOpen, leftPanel)
+const { onResize: onRightPanelResize } = useCollapsiblePanel(rightSidebarOpen, rightPanel)
+
+// Sidebar sizes are in pixels (the panels set size-unit="px"); collapsedSize is implicitly 0,
+// so a sidebar can be dragged fully shut and dragging back out restores its previous width.
+const LEFT_SIDEBAR_WIDTH = 256
+const LEFT_SIDEBAR_MIN_WIDTH = 192
+const RIGHT_SIDEBAR_WIDTH = 256
+const RIGHT_SIDEBAR_MIN_WIDTH = 192
+const CONTENT_MIN_WIDTH = 500
 </script>
 
 <template>
-  <main class="overflow-x-clip">
-    <!-- SidebarProvider is a flex row, so children sit side by side: ribbon, sidebar, page.
-         The top padding pushes the whole row below the fixed TitleBar, so the bar spans the
-         full width above it; the min-height shrinks by the same amount to keep the wrapper
-         exactly one viewport tall. The two fixed panels (ribbon, and LeftSidebar when it is
-         sticky) are out of flow and offset themselves. -->
-    <SidebarProvider
-      :open="false"
-      class="min-h-[calc(100svh-var(--titlebar-height))] pt-(--titlebar-height)"
-    >
+  <!-- The titlebar offset lives here rather than on SidebarProvider's wrapper: percentage
+       heights resolve against the parent's *padding* box, so the padding has to sit outside the
+       element whose height the panel group measures itself against. -->
+  <main class="overflow-x-clip pt-(--titlebar-height)">
+    <!-- SidebarProvider is a flex row, so its children sit side by side: the 3rem ribbon rail,
+         then the panel group.
+
+         The wrapper needs a *definite* height, not just a min-height: SplitterGroup writes
+         `height: 100%` inline on its own element, and a percentage only resolves against a
+         definite parent height. Against a min-height-only parent it fell back to the group's
+         content height, which is why the row came out half as tall as the window. min-h-0
+         drops the base min-h-svh, which would otherwise outvote this height and push the row a
+         titlebar past the bottom of the viewport.
+
+         The ribbon stays outside the group on purpose — its panel is fixed to the viewport and
+         only leaves a spacer in flow — so the group splits the width that is left over, measured
+         from its own edges. That is what makes the sidebars keep exactly the pixels their
+         handles were dragged through, at any window width. -->
+    <SidebarProvider :open="false" class="h-[calc(100svh-var(--titlebar-height))] min-h-0">
       <TitleBar
         :leftSidebarOpen="leftSidebarOpen"
         @toggle-left-sidebar="leftSidebarOpen = !leftSidebarOpen"
@@ -30,12 +61,41 @@ const rightSidebarOpen = ref(true)
         @toggle-right-sidebar="rightSidebarOpen = !rightSidebarOpen"
       />
       <LeftRibbon />
-      <LeftSidebar :open="leftSidebarOpen" />
-      <EmptyPage />
-      <SidebarInset class="min-w-0">
-        <RightSidebar :open="rightSidebarOpen" />
-        <slot />
-      </SidebarInset>
+      <ResizablePanelGroup direction="horizontal" class="h-full min-w-0 flex-1">
+        <ResizablePanel
+          ref="leftPanel"
+          class="min-w-0"
+          size-unit="px"
+          collapsible
+          :collapsed-size="0"
+          :default-size="LEFT_SIDEBAR_WIDTH"
+          :min-size="LEFT_SIDEBAR_MIN_WIDTH"
+          @resize="onLeftPanelResize"
+        >
+          <LeftSidebar />
+        </ResizablePanel>
+        <ResizableHandle />
+        <!-- Pixels again, because that is the only way the floor means pixels: reka-ui converts a
+             px panel's minSize against the measured group width, but passes a `%` panel's through
+             as a percentage — :min-size="320" there would mean 320%. No defaultSize, so the panel
+             still opens at whatever width the two sidebars leave. -->
+        <ResizablePanel class="flex min-w-0 flex-col" size-unit="px" :min-size="CONTENT_MIN_WIDTH">
+          <slot><EmptyPage /></slot>
+        </ResizablePanel>
+        <ResizableHandle />
+        <ResizablePanel
+          ref="rightPanel"
+          class="min-w-0"
+          size-unit="px"
+          collapsible
+          :collapsed-size="0"
+          :default-size="RIGHT_SIDEBAR_WIDTH"
+          :min-size="RIGHT_SIDEBAR_MIN_WIDTH"
+          @resize="onRightPanelResize"
+        >
+          <RightSidebar />
+        </ResizablePanel>
+      </ResizablePanelGroup>
     </SidebarProvider>
   </main>
 </template>
