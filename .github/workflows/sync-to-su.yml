@@ -1,0 +1,103 @@
+name: Sync to org repo
+
+# Runs in Mindoed/KachnaDocs only. Pushes master to the org repo as a
+# dedicated branch and opens (or refreshes) a PR against the org's master.
+#   Required secret: ORG_DEPLOY_KEY  - private half of the su-fit-vut deploy key
+#   Optional secret: ORG_PR_TOKEN    - classic PAT (repo scope) to open PRs;
+#                                      without it a compare URL is printed instead.
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types:
+      - completed
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sync-to-org
+  cancel-in-progress: false
+
+env:
+  ORG_REPO: su-fit-vut/KachnaDocs
+  SYNC_BRANCH: sync/master
+
+jobs:
+  sync:
+    # Once this file reaches the org repo via a merged PR, don't run there:
+    # the org copy has neither secret and would only produce noise.
+    if: github.repository == 'Mindoed/KachnaDocs'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up deploy key
+        env:
+          DEPLOY_KEY: ${{ secrets.SUFITVUT_DEPLOY_KEY }}
+        run: |
+          if [ -z "$DEPLOY_KEY" ]; then
+            echo "::error::Secret SUFITVUT_DEPLOY_KEY is not set in this repo." >&2
+            exit 1
+          fi
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "${{ secrets.SUFITVUT_DEPLOY_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts
+
+      - name: Push sync branch to org repo
+        env:
+          GIT_SSH_COMMAND: "ssh -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes -o BatchMode=yes"
+        run: |
+          # Strip this workflow file so merged PRs never carry it into the
+          # org repo: the pushed commit is our commit + one removal commit.
+          # The org's tree and the PR diff stay clean.
+          git config user.name "sync-to-org-bot"
+          git config user.email "sync-to-org-bot@users.noreply.github.com"
+          # -f: checkout@v7 already leaves us detached at $GITHUB_SHA;
+          # a plain checkout refuses to "switch" between detached HEADs.
+          git checkout -f --detach "$GITHUB_SHA"
+          git rm -q --ignore-unmatch .github/workflows/sync-to-su.yml
+          if ! git diff --cached --quiet; then
+            git commit -q -m "ci: keep sync workflow out of the org repo"
+          fi
+
+          # --force is safe: sync/master is a machine-owned branch, never
+          # edited by hand. After a PR merge its tip (the org-side merge
+          # commit) is not reachable from our master, so this stays non-ff.
+          git push --force \
+            git@github.com:"${ORG_REPO}".git \
+            "HEAD:refs/heads/${SYNC_BRANCH}"
+
+      - name: Open or refresh pull request
+        env:
+          # Deploy keys are ssh key pairs - they cannot authorize API calls,
+          # so PR opening needs its own token secret (classic PAT, repo scope).
+          GH_TOKEN: ${{ secrets.SUFITVUT_PR_TOKEN }}
+        run: |
+          api="https://api.github.com/repos/${ORG_REPO}/pulls"
+          if [ -z "$GH_TOKEN" ]; then
+            {
+              echo "Branch \`${SYNC_BRANCH}\` was pushed. ORG_PR_TOKEN secret is"
+              echo "not set, so open the PR manually:"
+              echo "https://github.com/${ORG_REPO}/compare/${SYNC_BRANCH}?expand=1"
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          # head filter wants "owner:repo:branch" - colons, not the slash
+          # used in clone URLs.
+          existing=$(curl -sf -H "Authorization: Bearer ${GH_TOKEN}" \
+            "${api}?state=open&head=${ORG_REPO//\//:}:${SYNC_BRANCH}" \
+            | jq -r '.[0].number // empty')
+
+          if [ -n "$existing" ]; then
+            echo "PR #${existing} is already open - the push above updated it." \
+              >> "$GITHUB_STEP_SUMMARY"
+          else
+            curl -sf -X POST \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H "Accept: application/vnd.github+json" \
+              -d "{\"title\":\"Sync from Mindoed/KachnaDocs $(date -u +%F)\",\"head\":\"${SYNC_BRANCH}\",\"base\":\"master\"}" \
+              "${api}" | jq -r .html_url >> "$GITHUB_STEP_SUMMARY"
+          fi
