@@ -32,6 +32,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          # fetch-depth: 0 - the default (1) gives a shallow clone, and
+          # pushing a shallow history to the *separate* org object store
+          # fails with "did not receive expected object / index-pack failed".
+          fetch-depth: 0
 
       - name: Set up deploy key
         env:
