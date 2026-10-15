@@ -50,10 +50,17 @@ jobs:
           printf '%s\n' "$DEPLOY_KEY" | tr -d '\r' | awk 'NF' > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           # Fail here with a clear message, not at git push with libcrypto.
-          ssh-keygen -yf ~/.ssh/id_ed25519 >/dev/null 2>&1 || {
-            echo "::error::SUFITVUT_DEPLOY_KEY is not a valid private key after normalization - re-paste the whole file from ~/.ssh/kachna-docs-org (BEGIN line through END line)." >&2
+          if ! ssh-keygen -yf ~/.ssh/id_ed25519 >/dev/null 2>&1; then
+            # Metadata only - enough to spot truncation or a mangled BEGIN
+            # line, never the private material. Expected values match
+            # ~/.ssh/kachna-docs-org exactly (verified locally).
+            echo "::error::SUFITVUT_DEPLOY_KEY is not a valid private key after normalization." >&2
+            echo "  stored:   $(printf '%s' "$DEPLOY_KEY" | wc -c) bytes, $(printf '%s\n' "$DEPLOY_KEY" | awk 'NF' | wc -l) non-empty lines" >&2
+            echo "  expected: 418 bytes, 7 non-empty lines (no trailing newline counted)" >&2
+            echo "  first line: [$(head -1 ~/.ssh/id_ed25519)]" >&2
+            echo "  last line:  [$(tail -1 ~/.ssh/id_ed25519)]" >&2
             exit 1
-          }
+          fi
           ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts
 
       - name: Push sync branch to org repo
