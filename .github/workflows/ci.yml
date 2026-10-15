@@ -61,11 +61,5 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Root `test` = `npm run test --workspaces --if-present`, which picks up
-      # api (vitest run) and shared (no-op). web has no `test` script -- only
-      # test:unit / test:e2e -- so it needs the explicit step below.
-      - name: Unit tests (api, shared)
+      - name: Unit tests (api, web, shared)
         run: npm test
-
-      - name: Unit tests (web)
-        run: npm run test:unit --workspace=web
