@@ -5,7 +5,7 @@ import { SidebarFooter } from '@/components/ui/sidebar'
 <template>
   <SidebarFooter>
     <div class="flex flex-col items-center">
-      <span class="text-xs text-sidebar-secondary">Kachna Docs v0.1.0</span>
+      <span class="text-xs text-sidebar-secondary">Docs</span>
     </div>
   </SidebarFooter>
 </template>
