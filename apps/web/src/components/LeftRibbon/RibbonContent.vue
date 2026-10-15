@@ -8,6 +8,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
+import { TooltipProvider } from '@/components/ui/tooltip'
 import type { LucideIcon } from '@lucide/vue'
 
 defineProps<{
@@ -24,15 +25,17 @@ defineProps<{
     <SidebarGroup>
       <SidebarGroupLabel>Application</SidebarGroupLabel>
       <SidebarGroupContent>
-        <SidebarMenu>
-          <SidebarMenuItem v-for="item in items" :key="item.title">
-            <SidebarMenuButton as-child :tooltip="item.title">
-              <a :href="item.url">
-                <component :is="item.icon" />
-              </a>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+        <TooltipProvider :delay-duration="500">
+          <SidebarMenu>
+            <SidebarMenuItem v-for="item in items" :key="item.title">
+              <SidebarMenuButton as-child :tooltip="item.title">
+                <a :href="item.url">
+                  <component :is="item.icon" />
+                </a>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </TooltipProvider>
       </SidebarGroupContent>
     </SidebarGroup>
   </SidebarContent>
