@@ -41,8 +41,18 @@ jobs:
             exit 1
           fi
           mkdir -p ~/.ssh && chmod 700 ~/.ssh
-          printf '%s\n' "${{ secrets.SUFITVUT_DEPLOY_KEY }}" > ~/.ssh/id_ed25519
+          # tr -d '\r': keys pasted from Windows editors carry CRLF endings,
+          # which make ssh fail with "Load key ... error in libcrypto".
+          # Ensure exactly one trailing newline; ssh needs it.
+          # awk strips every empty line, guaranteeing exactly one trailing
+          # newline - OpenSSH refuses to load a key without one.
+          printf '%s\n' "$DEPLOY_KEY" | tr -d '\r' | awk 'NF' > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
+          # Fail here with a clear message, not at git push with libcrypto.
+          ssh-keygen -yf ~/.ssh/id_ed25519 >/dev/null 2>&1 || {
+            echo "::error::SUFITVUT_DEPLOY_KEY is not a valid private key after normalization - re-paste the whole file from ~/.ssh/kachna-docs-org (BEGIN line through END line)." >&2
+            exit 1
+          }
           ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts
 
       - name: Push sync branch to org repo
