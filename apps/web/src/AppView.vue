@@ -5,6 +5,7 @@ import LeftSidebar from '@/components/LeftSidebar/LeftSidebar.vue'
 import RightSidebar from '@/components/RightSidebar/RightSidebar.vue'
 import TitleBar from '@/components/TitleBar/TitleBar.vue'
 import { SidebarProvider } from '@/components/ui/sidebar'
+import EmptyPage from './components/EmptyPage/EmptyPage.vue'
 
 // Separate from the SidebarProvider's `open`, which drives the ribbon only.
 const leftSidebarOpen = ref(true)
@@ -30,7 +31,11 @@ const rightSidebarOpen = ref(true)
       />
       <LeftRibbon />
       <LeftSidebar :open="leftSidebarOpen" />
-      <RightSidebar :open="rightSidebarOpen" />
+      <EmptyPage />
+      <SidebarInset class="min-w-0">
+        <RightSidebar :open="rightSidebarOpen" />
+        <slot />
+      </SidebarInset>
     </SidebarProvider>
   </main>
 </template>
