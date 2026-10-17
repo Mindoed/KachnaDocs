@@ -15,10 +15,4 @@ describe('AppController', () => {
 
     appController = app.get<AuthController>(AuthController);
   });
-
-  describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(appController.getHello()).toBe('Hello World!');
-    });
-  });
 });

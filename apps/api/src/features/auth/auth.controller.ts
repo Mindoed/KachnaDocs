@@ -15,11 +15,6 @@ export class AuthController {
   ) {}
   private readonly logger = new Logger(AuthController.name);
 
-  @Get()
-  getHello(): string {
-    return this.appService.getHello();
-  }
-
   @Get('discord')
   @UseGuards(AuthGuard('discord'))
   login() {

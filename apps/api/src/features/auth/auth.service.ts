@@ -9,10 +9,6 @@ import { DiscordProfile } from 'discord-strategy';
 export class AuthService {
   constructor(private readonly usersService: UsersService) {}
 
-  getHello(): string {
-    return 'Hello World!';
-  }
-
   async findOrCreateDiscordUser(profile: DiscordUser) {
     await this.usersService.upsertDiscordUser(profile);
   }
