@@ -4,7 +4,7 @@
 #   docker build --target api -t kachnadocs-api .
 #   docker build --target web -t kachnadocs-web .
 # `web` serves the built SPA through nginx and proxies /api to the `api`
-# container (see docker/nginx.conf and docker-compose.yml).
+# container (see docker/nginx.conf.template and docker-compose.yml).
 
 ########################################
 # base: lockfile + installed workspaces
@@ -64,7 +64,10 @@ RUN npm run build --workspace=web
 # web runtime: nginx serving the SPA, /api proxied upstream
 ########################################
 FROM nginx:1-alpine AS web
-# The SPA is static output; nginx alone serves it.
-COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
+# The SPA is static output; nginx alone serves it. The config is a template:
+# the image entrypoint renders it via envsubst, substituting KACHNADOCS_API
+# (override it on the web service to point /api at another host:port).
+ENV KACHNADOCS_API=api:3000
+COPY docker/nginx.conf.template /etc/nginx/templates/default.conf.template
 COPY --from=build-web /app/apps/web/dist /usr/share/nginx/html
 EXPOSE 80

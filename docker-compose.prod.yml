@@ -1,0 +1,49 @@
+# Production stack: pulls images built by .github/workflows/release.yml from
+# GHCR instead of building. Meant to sit in the server's compose directory
+# next to a filled .env (see .env.example in this repo for the variables).
+#
+# A Caddy container is expected to run in the same compose project (or reach
+# it over a shared network) as the TLS-terminating reverse proxy, forwarding
+# the site's host to `web:80` — nginx here listens plain HTTP only.
+#
+#   docker compose -f docker-compose.prod.yml pull && ... up -d
+#
+# Note: the workflow currently pushes to ghcr.io/su-fit-vut/... — set
+# KACHNADOCS_REGISTRY in .env (or edit below) if your org namespace differs.
+
+services:
+  api:
+    image: ${KACHNADOCS_REGISTRY:-ghcr.io/su-fit-vut}/kachnadocs-api:${KACHNADOCS_TAG:-latest}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      DISCORD_CLIENT_ID: "${DISCORD_CLIENT_ID}"
+      DISCORD_CLIENT_SECRET: "${DISCORD_CLIENT_SECRET}"
+      DISCORD_GUILD_ID: "${DISCORD_GUILD_ID}"
+      # Must match a redirect URI registered in the Discord portal AND the
+      # public HTTPS URL Caddy serves, e.g. https://docs.example.com/api/auth/discord/callback
+      DISCORD_CALLBACK_URL: "${DISCORD_CALLBACK_URL:?must be the public https callback URL}"
+      DISCORD_SCOPES: "${DISCORD_SCOPES:-identify guilds}"
+      DISCORD_USE_PKCE: "${DISCORD_USE_PKCE:-false}"
+      SESSION_SECRET: "${SESSION_SECRET:?set SESSION_SECRET in .env}"
+      # Origin Caddy serves the SPA from; exact match, scheme included.
+      FRONTEND_URL: "${FRONTEND_URL:?must be the public https origin of the SPA}"
+    # Only reachable from other containers on this project's network;
+    # external traffic arrives via Caddy -> web -> /api proxy.
+    expose:
+      - "3000"
+
+  web:
+    image: ${KACHNADOCS_REGISTRY:-ghcr.io/su-fit-vut}/kachnadocs-web:${KACHNADOCS_TAG:-latest}
+    restart: unless-stopped
+    # nginx resolves this lazily per request; default is api:3000.
+    environment:
+      KACHNADOCS_API: "api:3000"
+    # No published ports: Caddy is the only thing that should face the
+    # internet. If Caddy lives in a different compose project, publish this
+    # as "127.0.0.1:8080:80" and point Caddy at localhost:8080 instead.
+    expose:
+      - "80"
+    depends_on:
+      - api

@@ -1,11 +1,9 @@
 # nginx config for the `web` target of the root Dockerfile.
-# /api is proxied to the api container; docker-compose sets the `api` hostname.
-# When deploying without nginx in front (SPA on static hosting, api elsewhere),
-# point your own proxy at the api service with the same /api prefix.
-
-upstream kachnadocs_api {
-    server api:3000;
-}
+# The nginx image renders this through envsubst at startup into
+# /etc/nginx/conf.d/default.conf, substituting ${KACHNADOCS_API}.
+# /api is proxied to the api container; docker-compose.yml sets the `api`
+# hostname. Point KACHNADOCS_API somewhere else if the api service has
+# another name or runs on another host.
 
 server {
     listen 80;
@@ -14,7 +12,11 @@ server {
     index index.html;
 
     location /api/ {
-        proxy_pass http://kachnadocs_api;
+        # Resolve the api host lazily via Docker's embedded DNS: a static
+        # `upstream` block would make nginx refuse to boot when `api` is
+        # down or renamed; `set` + proxy_pass resolves per request instead.
+        set $kachnadocs_api "${KACHNADOCS_API}";
+        proxy_pass http://$kachnadocs_api;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
