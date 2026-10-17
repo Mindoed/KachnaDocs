@@ -9,10 +9,7 @@ import LeftSidebarFooter from './LeftSidebarFooter.vue'
 // the handle left it and only the border is decided here. `w-full` overrides the base
 // w-(--sidebar-width); tailwind-merge resolves the conflict because this lands after the base
 // classes in Sidebar's own cn() call.
-const sidebarClass = cn(
-  'h-full w-full overflow-hidden border-r',
-  'text-nowrap',
-)
+const sidebarClass = cn('h-full w-full overflow-hidden border-r text-nowrap')
 </script>
 
 <template>

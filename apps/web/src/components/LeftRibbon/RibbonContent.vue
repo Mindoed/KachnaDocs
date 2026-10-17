@@ -3,7 +3,6 @@ import {
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -23,7 +22,6 @@ defineProps<{
 <template>
   <SidebarContent>
     <SidebarGroup>
-      <SidebarGroupLabel>Application</SidebarGroupLabel>
       <SidebarGroupContent>
         <TooltipProvider :delay-duration="500">
           <SidebarMenu>

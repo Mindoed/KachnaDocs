@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { SidebarProvider } from '@/components/ui/sidebar'
 import LeftRibbon from '@/components/LeftRibbon/LeftRibbon.vue'
 import LeftSidebar from '@/components/LeftSidebar/LeftSidebar.vue'
@@ -11,6 +11,7 @@ import ResizablePanel from './components/ui/resizable/ResizablePanel.vue'
 import ResizableHandle from './components/ui/resizable/ResizableHandle.vue'
 import { useCollapsiblePanel } from './components/ui/resizable/useCollapsiblePanel'
 import type { ResizablePanelHandle } from './components/ui/resizable/useCollapsiblePanel'
+import type { DiscordUser } from '@kachnadocs/shared'
 
 // Separate from the SidebarProvider's `open`, which drives the ribbon only.
 const leftSidebarOpen = ref(true)
@@ -32,6 +33,38 @@ const LEFT_SIDEBAR_MIN_WIDTH = 192
 const RIGHT_SIDEBAR_WIDTH = 256
 const RIGHT_SIDEBAR_MIN_WIDTH = 192
 const CONTENT_MIN_WIDTH = 500
+
+/** Shape of GET /api/auth/me — the user is nested under `user`. */
+interface MeResponse {
+  authenticated: boolean
+  user: DiscordUser | null
+}
+
+const user = ref<DiscordUser | null>(null)
+
+onMounted(async () => {
+  try {
+    const response = await fetch('http://localhost:3000/api/auth/me', {
+      credentials: 'include',
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`)
+    }
+
+    const body = (await response.json()) as MeResponse
+    if (!body.authenticated) {
+      throw new Error('User is not authenticated.')
+    }
+
+    user.value = body.user
+    console.log('Authenticated user loaded:', user.value)
+  } catch {
+    console.error('Could not load authenticated user.')
+
+    window.location.href = '/auth'
+  }
+})
 </script>
 
 <template>
@@ -55,12 +88,13 @@ const CONTENT_MIN_WIDTH = 500
          handles were dragged through, at any window width. -->
     <SidebarProvider :open="false" class="h-[calc(100svh-var(--titlebar-height))] min-h-0">
       <TitleBar
+        :user="user"
         :leftSidebarOpen="leftSidebarOpen"
         @toggle-left-sidebar="leftSidebarOpen = !leftSidebarOpen"
         :rightSidebarOpen="rightSidebarOpen"
         @toggle-right-sidebar="rightSidebarOpen = !rightSidebarOpen"
       />
-      <LeftRibbon />
+      <LeftRibbon :user="user" />
       <ResizablePanelGroup direction="horizontal" class="h-full min-w-0 flex-1">
         <ResizablePanel
           ref="leftPanel"
