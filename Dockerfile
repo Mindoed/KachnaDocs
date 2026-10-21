@@ -26,6 +26,10 @@ RUN npm ci
 ########################################
 FROM base AS build-api
 WORKDIR /app
+# Source enters here, not in base, so editing source never invalidates the
+# `npm ci` layer. .dockerignore already strips node_modules, dist, .env and
+# apps/api/test from what this copies.
+COPY apps/api ./apps/api
 RUN npm run build --workspace=api
 # Pruning in place keeps the workspace links (@kachnadocs/shared resolves via
 # a relative symlink into ./shared) intact while removing dev dependencies.
@@ -58,6 +62,9 @@ CMD ["node", "apps/api/dist/main.js"]
 ########################################
 FROM base AS build-web
 WORKDIR /app
+# Same reason as build-api. .dockerignore drops node_modules, dist, e2e,
+# playwright-report and test-results.
+COPY apps/web ./apps/web
 RUN npm run build --workspace=web
 
 ########################################
