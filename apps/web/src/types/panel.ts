@@ -1,4 +1,4 @@
-import type { Component } from 'vue'
+import { defineAsyncComponent, markRaw, type Component } from 'vue'
 
 // document the panel interface:
 /**
@@ -6,7 +6,7 @@ import type { Component } from 'vue'
  * @property {string} title - The title of the panel, used for tooltip and aria-label on the tabstrip button.
  * @property {Component} icon - The icon component for the panel, typically from lucide-vue-next, marked as raw.
  * @property {Component} component - The main component of the panel, marked as raw and can be an async component.
- * @property {boolean} isAvailable - Used by registery Indicates whether the panel is currently active.
+ * @property {PanelMainView | null} isMainView - Used by registery Indicates whether the panel is currently active.
  * @property {number} [order] - Optional order of the panel in the tabstrip; falls back to registration order if not provided.
  * @property {() => boolean} [enabled] - Optional function to determine if the panel is enabled; returns false to hide the button entirely (useful for auth/feature gating).
  */
@@ -15,12 +15,29 @@ export interface Panel {
   title: string // tooltip + aria-label on the tabstrip button
   icon: Component // lucide-vue-next, markRaw'd
   component: Component // markRaw(defineAsyncComponent(...))
+  isMainView: PanelMainView | null // null → side panel; otherwise, main view panel
   order?: number // tabstrip order; falls back to registration order, 0 - is always shown (default panels)
   enabled?: () => boolean // false → no button at all (auth/feature gating)
 }
 
-export interface MainPanel extends Panel {
-  group: PanelMainView // the main view group this panel belongs to
+// TODO create enabled function for panels that require auth/feature gating
+export function createPanel(
+  title: string,
+  icon: Component,
+  component: Component,
+  isMainView: null | PanelMainView = null,
+  order?: number,
+): Panel {
+  const id = crypto.randomUUID() // generate a unique ID for the panel
+  return {
+    id: id,
+    title: title,
+    icon: markRaw(icon),
+    component: markRaw(component),
+    isMainView: isMainView,
+    order: order,
+    enabled: undefined,
+  }
 }
 
 /**
@@ -39,11 +56,11 @@ export const enum PanelLocation {
 export const enum PanelMainView {
   DocumentView = 'document-view',
   HomeView = 'home-view',
+  EmptyView = 'empty-view', // used for the empty page
 
   // Add more groups which are specific to a main view
 }
 
-export type PanelGroupIcons = Record<PanelMainView, Component | null> // used for the ribbon icons
 export type PanelMap = Record<PanelLocation, Record<PanelMainView, Panel[]>>
 export type PanelArray = Record<PanelLocation, Panel[]> // used for rendering all panels at a location
 export type PanelLookup = Record<PanelLocation, Map<string, Panel>>

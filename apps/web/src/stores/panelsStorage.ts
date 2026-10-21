@@ -1,13 +1,14 @@
 import { defineStore } from 'pinia'
 import {
   getAllPanelIDsByLocationAndGroup,
-  getPanelIdByLocation,
+  getFirstPanelIdMainView,
+  getPanelByLocation,
   hasPanel,
 } from '../features/panels/registry/panelRegistry.ts'
 import type { PanelMainView } from '../types/panel.ts'
 import { PanelLocation } from '../types/panel.ts'
 
-const usePanelsStorage = defineStore('panels', {
+export const usePanelsStore = defineStore('panelsStorage', {
   state: () => ({
     activeMainView: null as PanelMainView | null,
     availableSidePanels: {} as Record<PanelLocation, string[] | null>,
@@ -18,37 +19,58 @@ const usePanelsStorage = defineStore('panels', {
   }),
 
   getters: {
-    activePanelLeftSidebar(state): string | null {
+    activePanelIdLeftSidebar(state): string | null {
       return state[PanelLocation.LeftSidebar]
     },
-    activePanelRightSidebar(state): string | null {
+    activePanelIdRightSidebar(state): string | null {
       return state[PanelLocation.RightSidebar]
     },
-    activePanelMainView(state): string | null {
+    activePanelIdMainView(state): string | null {
       return state[PanelLocation.MainView]
+    },
+
+    availablePanelsLeftSidebar(state): string[] | null {
+      return state.availableSidePanels[PanelLocation.LeftSidebar] ?? null
+    },
+    availablePanelsRightSidebar(state): string[] | null {
+      return state.availableSidePanels[PanelLocation.RightSidebar] ?? null
     },
   },
 
   actions: {
-    activateMainView(panelMainView: PanelMainView, panelId: string) {
-      this.activeMainView = panelMainView
-      this[PanelLocation.MainView] = getPanelIdByLocation(PanelLocation.MainView, panelId)
+    panelInit() {
+      console.log('Initializing panels store...')
+      this.setActiveMainView(getFirstPanelIdMainView()!)
+    },
+
+    setActiveMainView(panelId: string) {
+      if (!hasPanel(PanelLocation.MainView, panelId)) {
+        throw new Error(`Panel with ID "${panelId}" is not registered in the main view.`)
+      }
+
+      const panel = getPanelByLocation(PanelLocation.MainView, panelId)
+      if (!panel || !panel.isMainView) {
+        throw new Error(`Panel with ID "${panelId}" is not registered in the main view.`)
+      }
+
+      this.activeMainView = panel.isMainView
+      this[PanelLocation.MainView] = panelId
 
       this.availableSidePanels[PanelLocation.LeftSidebar] = getAllPanelIDsByLocationAndGroup(
         PanelLocation.LeftSidebar,
-        panelMainView,
+        this.activeMainView,
       )
 
       this.availableSidePanels[PanelLocation.RightSidebar] = getAllPanelIDsByLocationAndGroup(
         PanelLocation.RightSidebar,
-        panelMainView,
+        this.activeMainView,
       )
 
       this[PanelLocation.LeftSidebar] =
         this.availableSidePanels[PanelLocation.LeftSidebar]?.[0] ?? null
     },
 
-    activateSidePanel(location: PanelLocation, panelId: string) {
+    setActiveSidePanel(location: PanelLocation, panelId: string) {
       if (location === PanelLocation.MainView) {
         throw new Error('Cannot activate a side panel in the main view location.')
       }

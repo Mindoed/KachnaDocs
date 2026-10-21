@@ -1,12 +1,7 @@
 import { shallowReactive } from 'vue'
-import type {
-  Panel,
-  PanelMap,
-  PanelArray,
-  PanelLookup,
-  PanelGroupIcons,
-} from '../../../types/panel.ts'
+import type { Panel, PanelMap, PanelArray, PanelLookup } from '../../../types/panel.ts'
 import { PanelMainView, PanelLocation } from '../../../types/panel.ts'
+import { usePanelsStore } from '../../../stores/panelsStorage.ts'
 
 // --------------------------------------------------
 // Registry storage
@@ -17,13 +12,16 @@ const panelRegistry: PanelMap = {
   [PanelLocation.LeftSidebar]: {
     [PanelMainView.DocumentView]: shallowReactive<Panel[]>([]),
     [PanelMainView.HomeView]: shallowReactive<Panel[]>([]),
+    [PanelMainView.EmptyView]: shallowReactive<Panel[]>([]),
   },
 
   [PanelLocation.RightSidebar]: {
     [PanelMainView.DocumentView]: shallowReactive<Panel[]>([]),
     [PanelMainView.HomeView]: shallowReactive<Panel[]>([]),
+    [PanelMainView.EmptyView]: shallowReactive<Panel[]>([]),
   },
   [PanelLocation.MainView]: {
+    [PanelMainView.EmptyView]: shallowReactive<Panel[]>([]),
     [PanelMainView.DocumentView]: shallowReactive<Panel[]>([]),
     [PanelMainView.HomeView]: shallowReactive<Panel[]>([]),
   },
@@ -37,22 +35,17 @@ const panelArray: PanelArray = {
 }
 
 // Fast lookup by panel ID
-const panelsById: PanelLookup = {
+const panelsByLocation: PanelLookup = {
   [PanelLocation.LeftSidebar]: new Map(),
   [PanelLocation.RightSidebar]: new Map(),
   [PanelLocation.MainView]: new Map(),
 }
 
-const ribbonIcons: PanelGroupIcons = {
-  [PanelMainView.DocumentView]: null,
-  [PanelMainView.HomeView]: null,
-}
+const panelsAll: Map<string, Panel> = new Map()
 
 // --------------------------------------------------
 // Registration
 // --------------------------------------------------
-
-export function registerMainView() {}
 
 /**
  * Register a panel at the specified location and group.
@@ -60,7 +53,12 @@ export function registerMainView() {}
  * Average complexity: O(1)
  */
 export function registerPanel(location: PanelLocation, group: PanelMainView, panel: Panel): void {
-  const lookup = panelsById[location]
+  // if (panel.enabled && !panel.enabled()) {
+  //   console.warn(`Panel '${panel.id}' is not enabled and will not be registered.`)
+  //   return
+  // }
+
+  const lookup = panelsByLocation[location]
 
   if (lookup.has(panel.id)) {
     throw new Error(`Panel '${panel.id}' is already registered at '${location}'`)
@@ -69,6 +67,13 @@ export function registerPanel(location: PanelLocation, group: PanelMainView, pan
   lookup.set(panel.id, panel)
   panelRegistry[location][group].push(panel)
   panelArray[location].push(panel)
+
+  if (location === PanelLocation.MainView) {
+    const store = usePanelsStore()
+    if (!store.activeMainView) {
+      store.setActiveMainView(panel.id)
+    }
+  }
 }
 
 /**
@@ -77,7 +82,7 @@ export function registerPanel(location: PanelLocation, group: PanelMainView, pan
  * Complexity: O(n), due to array removal.
  */
 export function removePanel(location: PanelLocation, panelId: string): boolean {
-  const panel = panelsById[location].get(panelId)
+  const panel = panelsByLocation[location].get(panelId)
 
   if (!panel) {
     return false
@@ -102,7 +107,7 @@ export function removePanel(location: PanelLocation, panelId: string): boolean {
   }
 
   // Remove from lookup
-  panelsById[location].delete(panelId)
+  panelsByLocation[location].delete(panelId)
 
   return true
 }
@@ -110,6 +115,12 @@ export function removePanel(location: PanelLocation, panelId: string): boolean {
 // --------------------------------------------------
 // Retrieval
 // --------------------------------------------------
+
+export function getFirstPanelIdMainView(): string | null {
+  return panelArray[PanelLocation.MainView].length > 0
+    ? panelArray[PanelLocation.MainView][0]!.id
+    : null
+}
 
 /**
  * Get all registered panels at a given location.
@@ -149,12 +160,16 @@ export function getAllPanelIDsByLocationAndGroup(
  * Average complexity: O(1)
  */
 export function getPanelIdByLocation(location: PanelLocation, panelId: string): string | null {
-  return panelsById[location].get(panelId)?.id ?? null
+  return panelsByLocation[location].get(panelId)?.id ?? null
+}
+
+export function getPanelByLocation(location: PanelLocation, panelId: string): Panel | null {
+  return panelsByLocation[location].get(panelId) ?? null
 }
 
 /**
  * Check whether a panel exists.
  */
 export function hasPanel(location: PanelLocation, panelId: string): boolean {
-  return panelsById[location].has(panelId)
+  return panelsByLocation[location].has(panelId)
 }

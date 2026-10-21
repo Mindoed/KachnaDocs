@@ -8,15 +8,11 @@ import { Button } from '../ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { DiscordIcon } from '@kachnadocs/shared'
 
-import {
-  ArrowLeft,
-  ArrowRight,
-  PanelLeft,
-  PanelLeftClose,
-  PanelRight,
-  PanelRightClose,
-  Search,
-} from '@lucide/vue'
+import { ArrowLeft, ArrowRight, Search } from '@lucide/vue'
+
+import TitleBarRightSideIcons from './TitleBarRightSideIcons.vue'
+import TitleBarLeftSideIcons from './TitleBarLeftSideIcons.vue'
+
 import type { DiscordUser } from '@kachnadocs/shared/discord.type'
 
 // The ui SidebarTrigger can't be used here: it calls the shared provider's toggleSidebar,
@@ -51,20 +47,11 @@ whenever(meta_j!, () => {
           <AvatarFallback>G</AvatarFallback>
         </Avatar>
       </div>
-      <Button
-        variant="ghost"
-        size="icon"
-        class="ml-1"
-        aria-label="Toggle sidebar"
-        @click="emit('toggleLeftSidebar')"
-      >
-        <div v-if="!leftSidebarOpen">
-          <PanelLeft />
-        </div>
-        <div v-else>
-          <PanelLeftClose />
-        </div>
-      </Button>
+
+      <TitleBarLeftSideIcons
+        :leftSidebarOpen="leftSidebarOpen"
+        @toggleLeftSidebar="emit('toggleLeftSidebar')"
+      />
     </div>
 
     <div class="flex-1">
@@ -84,20 +71,10 @@ whenever(meta_j!, () => {
     </div>
 
     <div class="flex flex-1 content-center flex-row-reverse mr-1 gap-1">
-      <Button
-        variant="ghost"
-        size="icon"
-        aria-label="Toggle sidebar"
-        :class="'self-center'"
-        @click="emit('toggleRightSidebar')"
-      >
-        <div v-if="!rightSidebarOpen">
-          <PanelRight />
-        </div>
-        <div v-else>
-          <PanelRightClose />
-        </div>
-      </Button>
+      <TitleBarRightSideIcons
+        :rightSidebarOpen="rightSidebarOpen"
+        @toggleRightSidebar="emit('toggleRightSidebar')"
+      />
     </div>
   </div>
 </template>

@@ -5,13 +5,16 @@ import LeftRibbon from '@/components/LeftRibbon/LeftRibbon.vue'
 import LeftSidebar from '@/components/LeftSidebar/LeftSidebar.vue'
 import RightSidebar from '@/components/RightSidebar/RightSidebar.vue'
 import TitleBar from '@/components/TitleBar/TitleBar.vue'
-import EmptyPage from './components/EmptyPage/EmptyPage.vue'
 import ResizablePanelGroup from './components/ui/resizable/ResizablePanelGroup.vue'
 import ResizablePanel from './components/ui/resizable/ResizablePanel.vue'
 import ResizableHandle from './components/ui/resizable/ResizableHandle.vue'
 import { useCollapsiblePanel } from './components/ui/resizable/useCollapsiblePanel'
 import type { ResizablePanelHandle } from './components/ui/resizable/useCollapsiblePanel'
 import type { DiscordUser } from '@kachnadocs/shared'
+import { usePanelsStore } from './stores/panelsStorage.ts'
+import { getAllPanelsByLocation } from './features/panels/registry/panelRegistry'
+import { PanelLocation } from './types/panel.ts'
+import { registerDefaultPanels } from './features/panels/registry/registerDefaultPanels.ts'
 
 // Separate from the SidebarProvider's `open`, which drives the ribbon only.
 const leftSidebarOpen = ref(true)
@@ -41,6 +44,7 @@ interface MeResponse {
 }
 
 const user = ref<DiscordUser | null>(null)
+const store = usePanelsStore()
 
 onMounted(async () => {
   try {
@@ -59,10 +63,12 @@ onMounted(async () => {
 
     user.value = body.user
     console.log('Authenticated user loaded:', user.value)
-  } catch {
-    console.error('Could not load authenticated user.')
+    registerDefaultPanels()
+    store.panelInit()
+  } catch (error) {
+    console.error('Could not load authenticated user.', error)
 
-    window.location.href = '/auth'
+    // window.location.href = '/auth'
   }
 })
 </script>
@@ -114,7 +120,12 @@ onMounted(async () => {
              as a percentage — :min-size="320" there would mean 320%. No defaultSize, so the panel
              still opens at whatever width the two sidebars leave. -->
         <ResizablePanel class="flex min-w-0 flex-col" size-unit="px" :min-size="CONTENT_MIN_WIDTH">
-          <slot><EmptyPage /></slot>
+          <component
+            :is="p.component"
+            v-for="p in getAllPanelsByLocation(PanelLocation.MainView)"
+            v-show="store.activePanelIdMainView === p.id"
+            :key="p.id"
+          />
         </ResizablePanel>
         <ResizableHandle />
         <ResizablePanel

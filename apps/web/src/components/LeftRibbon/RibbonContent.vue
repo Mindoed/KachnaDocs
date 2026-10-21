@@ -8,15 +8,13 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
 import { TooltipProvider } from '@/components/ui/tooltip'
-import type { LucideIcon } from '@lucide/vue'
+import { getAllPanelsByLocation } from '@/features/panels/registry/panelRegistry'
+import { usePanelsStore } from '@/stores/panelsStorage'
+import { PanelLocation } from '@/types/panel'
 
-defineProps<{
-  items: {
-    title: string
-    url: string
-    icon: LucideIcon
-  }[]
-}>()
+const store = usePanelsStore()
+
+const ribbonPanels = getAllPanelsByLocation(PanelLocation.MainView)
 </script>
 
 <template>
@@ -25,10 +23,10 @@ defineProps<{
       <SidebarGroupContent>
         <TooltipProvider :delay-duration="500">
           <SidebarMenu>
-            <SidebarMenuItem v-for="item in items" :key="item.title">
-              <SidebarMenuButton as-child :tooltip="item.title">
-                <a :href="item.url">
-                  <component :is="item.icon" />
+            <SidebarMenuItem v-for="p in ribbonPanels" :key="p.title">
+              <SidebarMenuButton as-child :tooltip="p.title">
+                <a @click.prevent="store.setActiveMainView(p.id)" href="#">
+                  <component :is="p.icon" />
                 </a>
               </SidebarMenuButton>
             </SidebarMenuItem>
