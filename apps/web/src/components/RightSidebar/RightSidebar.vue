@@ -13,8 +13,8 @@ const store = usePanelsStore()
   <Sidebar collapsible="none" side="right" :class="sidebarClass">
     <component
       :is="p.component"
-      v-for="p in getAllPanelsByLocation(PanelLocation.LeftSidebar)"
-      v-show="store.activePanelIdLeftSidebar === p.id"
+      v-for="p in getAllPanelsByLocation(PanelLocation.RightSidebar)"
+      v-show="store.activePanelIdRightSidebar === p.id"
       :key="p.id"
     />
   </Sidebar>

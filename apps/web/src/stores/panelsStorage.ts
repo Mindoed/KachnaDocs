@@ -68,6 +68,9 @@ export const usePanelsStore = defineStore('panelsStorage', {
 
       this[PanelLocation.LeftSidebar] =
         this.availableSidePanels[PanelLocation.LeftSidebar]?.[0] ?? null
+
+      this[PanelLocation.RightSidebar] =
+        this.availableSidePanels[PanelLocation.RightSidebar]?.[0] ?? null
     },
 
     setActiveSidePanel(location: PanelLocation, panelId: string) {

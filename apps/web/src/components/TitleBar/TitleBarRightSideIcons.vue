@@ -27,14 +27,16 @@ const store = usePanelsStore()
     </div>
   </Button>
 
-  <Button variant="ghost" size="icon" :class="'self-center'">
-    <component
-      :is="p.icon"
-      v-for="p in getAllPanelsByLocation(PanelLocation.RightSidebar)"
-      v-show="rightSidebarOpen && store.availablePanelsRightSidebar?.includes(p.id)"
-      :key="p.id"
-      :aria-pressed="store.activePanelIdRightSidebar === p.id"
-      @click="store.setActiveSidePanel(PanelLocation.RightSidebar, p.id)"
-    />
+  <Button
+    variant="ghost"
+    size="icon"
+    class="self-center"
+    v-for="p in getAllPanelsByLocation(PanelLocation.RightSidebar)"
+    v-show="rightSidebarOpen && store.availablePanelsRightSidebar?.includes(p.id)"
+    :key="p.id"
+    :class="{ 'bg-accent': store.activePanelIdRightSidebar === p.id }"
+    @click="store.setActiveSidePanel(PanelLocation.RightSidebar, p.id)"
+  >
+    <component :is="p.icon" />
   </Button>
 </template>
