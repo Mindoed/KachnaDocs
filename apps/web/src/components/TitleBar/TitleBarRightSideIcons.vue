@@ -18,6 +18,7 @@ const store = usePanelsStore()
     aria-label="Toggle sidebar"
     :class="'self-center'"
     @click="emit('toggleRightSidebar')"
+    v-show="store.countOfAvaibleRightSidebar > 0"
   >
     <div v-if="!rightSidebarOpen">
       <PanelRight />

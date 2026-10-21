@@ -5,7 +5,7 @@ import { getAllPanelsByLocation } from '@/features/panels/registry/panelRegistry
 import { PanelLocation } from '@/types/panel.ts'
 import { usePanelsStore } from '@/stores/panelsStorage.ts'
 
-const sidebarClass = cn('h-full overflow-hidden border-l', 'text-nowrap', 'w-full')
+const sidebarClass = cn('h-full w-full overflow-hidden text-nowrap', 'border-l')
 const store = usePanelsStore()
 </script>
 

@@ -9,7 +9,7 @@ export function registerDefaultPanels(): void {
     PanelLocation.LeftSidebar,
     PanelMainView.EmptyView,
     createPanel(
-      'Empty Page Left Sidebar',
+      'Empty Left Sidebar',
       BookDashed,
       defineAsyncComponent(() => import('@/components/EmptyComponents/EmptyLeftSidebar.vue')),
     ),
@@ -19,7 +19,7 @@ export function registerDefaultPanels(): void {
     PanelLocation.LeftSidebar,
     PanelMainView.EmptyView,
     createPanel(
-      'Empty Page Right Sidebar',
+      'Empty Right Sidebar',
       BookDashed,
       defineAsyncComponent(() => import('@/components/EmptyComponents/EmptyRightSidebar.vue')),
     ),
@@ -29,7 +29,7 @@ export function registerDefaultPanels(): void {
     PanelLocation.RightSidebar,
     PanelMainView.EmptyView,
     createPanel(
-      'Empty Page Right Sidebar',
+      'Empty Right Sidebar',
       BookDashed,
       defineAsyncComponent(() => import('@/components/EmptyComponents/EmptyRightSidebar.vue')),
     ),
@@ -43,6 +43,29 @@ export function registerDefaultPanels(): void {
       BookDashed,
       defineAsyncComponent(() => import('@/components/EmptyComponents/EmptyPage.vue')),
       PanelMainView.EmptyView,
+    ),
+  )
+
+  registerPanel(
+    PanelLocation.MainView,
+    PanelMainView.DocumentView,
+    createPanel(
+      'Empty Page With Only Left Sidebar',
+      BookDashed,
+      defineAsyncComponent(() => import('@/components/EmptyComponents/EmptyRightSidebar.vue')),
+      PanelMainView.DocumentView,
+    ),
+  )
+
+  registerPanel(
+    PanelLocation.LeftSidebar,
+    PanelMainView.DocumentView,
+    createPanel(
+      'Empty Right Sidebar From Document View',
+      BookDashed,
+      defineAsyncComponent(() => import('@/components/EmptyComponents/EmptyLeftSidebar.vue')),
+      null,
+      1,
     ),
   )
 }

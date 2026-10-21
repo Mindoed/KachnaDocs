@@ -22,9 +22,11 @@ export const usePanelsStore = defineStore('panelsStorage', {
     activePanelIdLeftSidebar(state): string | null {
       return state[PanelLocation.LeftSidebar]
     },
+
     activePanelIdRightSidebar(state): string | null {
       return state[PanelLocation.RightSidebar]
     },
+
     activePanelIdMainView(state): string | null {
       return state[PanelLocation.MainView]
     },
@@ -32,8 +34,21 @@ export const usePanelsStore = defineStore('panelsStorage', {
     availablePanelsLeftSidebar(state): string[] | null {
       return state.availableSidePanels[PanelLocation.LeftSidebar] ?? null
     },
+
     availablePanelsRightSidebar(state): string[] | null {
       return state.availableSidePanels[PanelLocation.RightSidebar] ?? null
+    },
+
+    countOfAvaibleLeftSidebar(state): number {
+      return state.availableSidePanels[PanelLocation.LeftSidebar]?.length ?? 0
+    },
+
+    countOfAvaibleRightSidebar(state): number {
+      return state.availableSidePanels[PanelLocation.RightSidebar]?.length ?? 0
+    },
+
+    countOfAvaibleMainView(state): number {
+      return state.availableSidePanels[PanelLocation.MainView]?.length ?? 0
     },
   },
 

@@ -63,12 +63,12 @@ onMounted(async () => {
 
     user.value = body.user
     console.log('Authenticated user loaded:', user.value)
-    registerDefaultPanels()
-    store.panelInit()
   } catch (error) {
     console.error('Could not load authenticated user.', error)
-
-    // window.location.href = '/auth'
+    window.location.href = '/auth'
+  } finally {
+    registerDefaultPanels()
+    store.panelInit()
   }
 })
 </script>
@@ -111,6 +111,7 @@ onMounted(async () => {
           :default-size="LEFT_SIDEBAR_WIDTH"
           :min-size="LEFT_SIDEBAR_MIN_WIDTH"
           @resize="onLeftPanelResize"
+          v-show="store.countOfAvaibleLeftSidebar > 0"
         >
           <LeftSidebar />
         </ResizablePanel>
@@ -137,6 +138,7 @@ onMounted(async () => {
           :default-size="RIGHT_SIDEBAR_WIDTH"
           :min-size="RIGHT_SIDEBAR_MIN_WIDTH"
           @resize="onRightPanelResize"
+          v-show="store.countOfAvaibleRightSidebar > 0"
         >
           <RightSidebar />
         </ResizablePanel>
