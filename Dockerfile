@@ -11,8 +11,10 @@ COPY shared/tsconfig.json ./shared/
 COPY apps/api/package*.json ./apps/api/
 COPY apps/web/package*.json ./apps/web/
 
-# Install ALL dependencies (including devDependencies needed for builds)
-RUN npm ci
+# Install ALL dependencies (including devDependencies needed for builds).
+# --ignore-scripts skips the root `prepare` script, which would run build:shared
+# before shared/src has been copied in below.
+RUN npm ci --ignore-scripts
 
 # Copy the source code for the shared types package
 COPY shared/ ./shared/

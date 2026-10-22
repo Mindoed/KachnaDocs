@@ -12,8 +12,19 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   app.setGlobalPrefix('api');
 
+  // Trust the single proxy hop in front of us (Caddy/Traefik/nginx terminating
+  // TLS), so req.protocol and req.host report what the browser used rather than
+  // the loopback address we were reached on. Two things depend on it:
+  //   - the OAuth callback URL, which discord-strategy resolves against the
+  //     request origin when DISCORD_CALLBACK_URL is relative;
+  //   - the postMessage target on the login popup's final page
+  //     (auth.controller.ts).
+  // Without it both come out as http://<internal host>, and the browser silently
+  // drops a message addressed to http:// from an https page.
+  app.set('trust proxy', 1);
+
   const config = app.get(ConfigService);
-  const isProduction = process.env.NODE_ENV === 'production';
+  const isProduction = config.get<string>('NODE_ENV') === 'production';
 
   // 2. Only enforce external CORS in development (Vite dev server)
   if (!isProduction) {

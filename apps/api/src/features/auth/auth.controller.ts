@@ -1,7 +1,6 @@
 import { Controller, Get, Redirect, Req, Res, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 
 import { AuthService } from './auth.service.js';
 import type { Request, Response } from 'express';
@@ -9,10 +8,7 @@ import { DiscordUser } from '@kachnadocs/shared';
 
 @Controller('auth')
 export class AuthController {
-  constructor(
-    private readonly appService: AuthService,
-    private readonly config: ConfigService,
-  ) {}
+  constructor(private readonly appService: AuthService) {}
   private readonly logger = new Logger(AuthController.name);
 
   @Get('discord')
@@ -42,7 +38,7 @@ export class AuthController {
     // and it is shared across tabs — the opener's next credentialed fetch
     // (GET /api/auth/me) will already be authenticated. The popup page below
     // only needs to tell the opener "you're done", via postMessage.
-    const frontendUrl = this.config.getOrThrow<string>('FRONTEND_URL');
+    const frontendUrl = `${req.protocol}://${req.get('host')}`;
 
     return res.type('html').send(this.appService.popupDonePage(frontendUrl, '/'));
   }
