@@ -21,18 +21,11 @@ async function bootstrap() {
   //     (auth.controller.ts).
   // Without it both come out as http://<internal host>, and the browser silently
   // drops a message addressed to http:// from an https page.
+  //
   app.set('trust proxy', 1);
 
   const config = app.get(ConfigService);
   const isProduction = config.get<string>('NODE_ENV') === 'production';
-
-  // 2. Only enforce external CORS in development (Vite dev server)
-  if (!isProduction) {
-    app.enableCors({
-      origin: config.getOrThrow<string>('FRONTEND_URL'),
-      credentials: true,
-    });
-  }
 
   app.use(
     session({
