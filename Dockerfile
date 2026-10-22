@@ -58,7 +58,7 @@ COPY shared/package*.json ./shared/
 COPY apps/api/package*.json ./apps/api/
 
 # Install ONLY production dependencies to keep the image slim
-RUN npm ci --omit=dev
+RUN npm ci --omit=dev --ignore-scripts
 
 # Copy compiled shared types into the production workspace area
 COPY --from=base-builder /app/shared/dist ./shared/dist
