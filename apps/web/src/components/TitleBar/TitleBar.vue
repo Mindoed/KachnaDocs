@@ -6,14 +6,12 @@ import { useMagicKeys, whenever } from '@vueuse/core'
 import { ButtonGroup } from '../ui/button-group'
 import { Button } from '../ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { DiscordIcon } from '@kachnadocs/shared'
+import { DiscordIcon, type DiscordUser } from '@kachnadocs/shared'
 
 import { ArrowLeft, ArrowRight, Search } from '@lucide/vue'
 
 import TitleBarRightSideIcons from './TitleBarRightSideIcons.vue'
 import TitleBarLeftSideIcons from './TitleBarLeftSideIcons.vue'
-
-import type { DiscordUser } from '@kachnadocs/shared/discord.type'
 
 // The ui SidebarTrigger can't be used here: it calls the shared provider's toggleSidebar,
 // which belongs to the ribbon. AppView owns the LeftSidebar's own state and forwards it back.

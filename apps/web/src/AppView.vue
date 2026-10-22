@@ -48,7 +48,11 @@ const store = usePanelsStore()
 
 onMounted(async () => {
   try {
-    const response = await fetch('http://localhost:3000/api/auth/me', {
+    // Relative on purpose: in the container nginx serves this page and proxies
+    // /api to the API on loopback, and in dev Vite proxies /api to the api dev
+    // server (apps/web/vite.config.ts). One code path for both, and no API origin
+    // baked into the bundle.
+    const response = await fetch('/api/auth/me', {
       credentials: 'include',
     })
 

@@ -6,8 +6,11 @@ import { Spinner } from '@/components/ui/spinner'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
-/** Origin of the API the popup is sent to, and of the SPA that may postMessage back. */
-const API_URL = 'http://localhost:3000'
+/**
+ * Origin the popup's postMessage must come from. The API is same-origin now: the
+ * popup's final page is served by the API through the same nginx that served this
+ * page, so it always equals the SPA's own origin.
+ */
 const APP_ORIGIN = window.location.origin
 
 const router = useRouter()
@@ -17,9 +20,11 @@ const error = ref<string | null>(null)
 function handleAuth() {
   error.value = null
 
-  // A features string (no 'noopener') is what keeps window.open() returning a
-  // handle we can call window.close() on.
-  popup.value = window.open(`${API_URL}/api/auth/discord`, 'kachnadocs-discord-auth')
+  // Relative for the same reason as AppView.vue: it resolves against this page's
+  // origin, so the OAuth flow starts wherever we are actually being served from.
+  // No features string (in particular no 'noopener') is what keeps window.open()
+  // returning a handle we can call window.close() on.
+  popup.value = window.open('/api/auth/discord', 'kachnadocs-discord-auth')
 
   if (!popup.value) {
     error.value = 'Popup was blocked by the browser. Allow popups for this site.'
@@ -27,10 +32,10 @@ function handleAuth() {
 }
 
 function onMessage(event: MessageEvent) {
-  // The popup's final page is served by the API, so the signal arrives with
-  // the API's origin. Accept it (and our own, in case the popup is ever
-  // redirected to an SPA page that relays the message instead).
-  if (event.origin !== API_URL && event.origin !== APP_ORIGIN) return
+  // The popup's final page is served by the API through the same nginx that
+  // served this page, so its origin is always our own. Exactly one acceptable
+  // origin now - stricter than when the API had a separate one and both passed.
+  if (event.origin !== APP_ORIGIN) return
   if (event.data?.type !== 'kachnadocs:auth-done') return
 
   popup.value?.close()
