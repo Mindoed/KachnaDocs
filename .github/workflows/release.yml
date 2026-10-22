@@ -55,6 +55,14 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          # Where the site is mounted, baked into the SPA at build time (see the
+          # ARG in the Dockerfile). Comes from an Actions *variable* — Settings ->
+          # Secrets and variables -> Actions -> Variables -> VITE_BASE_PATH, e.g.
+          # "/kachnadocs" for https://example.com/kachnadocs/. Unset builds for the
+          # origin root. The container has to be given the same value at run time as
+          # BASE_PATH, and it only takes effect in the repo that publishes the image.
+          build-args: |
+            VITE_BASE_PATH=${{ vars.VITE_BASE_PATH }}
           # Leverages GitHub Actions cache so subsequent builds are lightning fast
           cache-from: type=gha
           cache-to: type=gha,mode=max

@@ -29,6 +29,15 @@ RUN npm run build:shared
 FROM base-builder AS web-builder
 WORKDIR /app
 
+# Path the SPA is published under, e.g. --build-arg VITE_BASE_PATH=/kachnadocs for
+# a site the shared proxy serves at https://example.com/kachnadocs/ rather than at
+# the origin root. Baked into the bundle — index.html *and* the URLs the JS
+# resolves lazy route chunks against — so an image built for one mount point
+# cannot be re-pointed at another by a run-time variable. '/' means the origin
+# root. The container reads the same value at run time as BASE_PATH (.env.example).
+ARG VITE_BASE_PATH=/
+ENV VITE_BASE_PATH=${VITE_BASE_PATH}
+
 # Copy the web application source code
 COPY apps/web/ ./apps/web/
 

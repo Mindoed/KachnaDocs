@@ -1,6 +1,8 @@
 import { Controller, Get, Redirect, Req, Res, UseGuards } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { AuthGuard } from '@nestjs/passport';
 import { Logger } from '@nestjs/common';
+import { normalizeBasePath } from '../../common/base-path.js';
 
 import { AuthService } from './auth.service.js';
 import type { Request, Response } from 'express';
@@ -8,7 +10,10 @@ import { DiscordUser } from '@kachnadocs/shared';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly appService: AuthService) {}
+  constructor(
+    private readonly appService: AuthService,
+    private readonly config: ConfigService,
+  ) {}
   private readonly logger = new Logger(AuthController.name);
 
   @Get('discord')
@@ -38,9 +43,15 @@ export class AuthController {
     // and it is shared across tabs — the opener's next credentialed fetch
     // (GET /api/auth/me) will already be authenticated. The popup page below
     // only needs to tell the opener "you're done", via postMessage.
+    //
+    // Origin only, because the same value is postMessage's targetOrigin, which
+    // takes an origin and rejects one carrying a path. So the mount point rides on
+    // the redirect path instead: opened as a plain tab, the popup has to land on
+    // https://example.com/kachnadocs/, not on the origin root.
     const frontendUrl = `${req.protocol}://${req.get('host')}`;
+    const basePath = normalizeBasePath(this.config.get<string>('BASE_PATH'));
 
-    return res.type('html').send(this.appService.popupDonePage(frontendUrl, '/'));
+    return res.type('html').send(this.appService.popupDonePage(frontendUrl, `${basePath}/`));
   }
 
   @Get('me')

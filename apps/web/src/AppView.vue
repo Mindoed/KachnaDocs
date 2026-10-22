@@ -11,6 +11,7 @@ import ResizableHandle from './components/ui/resizable/ResizableHandle.vue'
 import { useCollapsiblePanel } from './components/ui/resizable/useCollapsiblePanel'
 import type { ResizablePanelHandle } from './components/ui/resizable/useCollapsiblePanel'
 import type { DiscordUser } from '@kachnadocs/shared'
+import { apiUrl, appUrl } from '@/lib/paths'
 import { usePanelsStore } from './stores/panelsStorage.ts'
 import { getAllPanelsByLocation } from './features/panels/registry/panelRegistry'
 import { PanelLocation } from './types/panel.ts'
@@ -48,11 +49,12 @@ const store = usePanelsStore()
 
 onMounted(async () => {
   try {
-    // Relative on purpose: in the container nginx serves this page and proxies
-    // /api to the API on loopback, and in dev Vite proxies /api to the api dev
-    // server (apps/web/vite.config.ts). One code path for both, and no API origin
-    // baked into the bundle.
-    const response = await fetch('/api/auth/me', {
+    // Relative on purpose: in the container the API serves this page itself, and
+    // in dev Vite proxies to the api dev server (apps/web/vite.config.ts). One
+    // code path for both, and no API origin baked into the bundle. apiUrl() only
+    // prepends the mount point, so this still works when the site lives under a
+    // sub-path such as https://example.com/kachnadocs/.
+    const response = await fetch(apiUrl('/auth/me'), {
       credentials: 'include',
     })
 
@@ -69,7 +71,10 @@ onMounted(async () => {
     console.log('Authenticated user loaded:', user.value)
   } catch (error) {
     console.error('Could not load authenticated user.', error)
-    window.location.href = '/auth'
+    // A hard navigation on purpose (no router instance here, and a fresh document
+    // is the point after an unauthenticated start), so the mount point has to come
+    // from appUrl rather than a bare '/auth'.
+    window.location.href = appUrl('/auth')
   } finally {
     registerDefaultPanels()
     store.panelInit()

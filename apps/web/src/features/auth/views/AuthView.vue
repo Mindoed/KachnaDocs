@@ -2,6 +2,7 @@
 import { onMounted, onBeforeUnmount, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Button } from '@/components/ui/button'
+import { apiUrl } from '@/lib/paths'
 import { Spinner } from '@/components/ui/spinner'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -21,10 +22,11 @@ function handleAuth() {
   error.value = null
 
   // Relative for the same reason as AppView.vue: it resolves against this page's
-  // origin, so the OAuth flow starts wherever we are actually being served from.
+  // origin, so the OAuth flow starts wherever we are actually being served from —
+  // including under a sub-path mount, which apiUrl() accounts for.
   // No features string (in particular no 'noopener') is what keeps window.open()
   // returning a handle we can call window.close() on.
-  popup.value = window.open('/api/auth/discord', 'kachnadocs-discord-auth')
+  popup.value = window.open(apiUrl('/auth/discord'), 'kachnadocs-discord-auth')
 
   if (!popup.value) {
     error.value = 'Popup was blocked by the browser. Allow popups for this site.'
