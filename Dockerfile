@@ -8,7 +8,7 @@ WORKDIR /app
 COPY package*.json ./
 COPY shared/package*.json ./shared/
 COPY apps/api/package*.json ./apps/api/
-COPY apps/frontend/package*.json ./apps/frontend/
+COPY apps/web/package*.json ./apps/web/
 
 # Install ALL dependencies (including devDependencies needed for builds)
 RUN npm ci
@@ -21,22 +21,22 @@ RUN npm run build:shared
 
 
 # ==========================================
-# STAGE 2: Build the Vue.js Frontend (`frontend`)
+# STAGE 2: Build the Vue.js web (`frontend`)
 # ==========================================
-FROM base-builder AS frontend-builder
+FROM base-builder AS web-builder
 WORKDIR /app
 
-# Copy the frontend application source code
-COPY apps/frontend/ ./apps/frontend/
+# Copy the web application source code
+COPY apps/web/ ./apps/web/
 
-# Build the frontend workspace (Vite outputs assets to apps/frontend/dist)
-RUN npm run build --workspace=frontend
+# Build the web workspace (Vite outputs assets to apps/web/dist)
+RUN npm run build --workspace=web
 
 
 # ==========================================
-# STAGE 3: Build the NestJS Backend (`api`)
+# STAGE 3: Build the NestJS api (`backend`)
 # ==========================================
-FROM base-builder AS backend-builder
+FROM base-builder AS api-builder
 WORKDIR /app
 
 # Copy the backend application source code
@@ -64,10 +64,10 @@ RUN npm ci --omit=dev
 COPY --from=base-builder /app/shared/dist ./shared/dist
 
 # Copy compiled NestJS code
-COPY --from=backend-builder /app/apps/api/dist ./apps/api/dist
+COPY --from=api-builder /app/apps/api/dist ./apps/api/dist
 
 # Copy compiled Vue/Vite assets directly into the NestJS client directory
-COPY --from=frontend-builder /app/apps/frontend/dist ./apps/api/client
+COPY --from=web-builder /app/apps/web/dist ./apps/api/client
 
 EXPOSE 3000
 
