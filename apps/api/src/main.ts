@@ -105,6 +105,16 @@ async function bootstrap() {
       res.sendFile(indexHtml, (err?: unknown) => (err ? next(err) : undefined));
     });
 
+    const envExamplePath = join(process.cwd(), 'apps', 'api', 'env.example');
+    if (existsSync(envExamplePath)) {
+      const envExampleContent = require('fs').readFileSync(envExamplePath, 'utf-8');
+      logger.log('======================  env.example ======================  ');
+      logger.log(`${envExampleContent}`);
+      logger.log('======================  env.example ======================  ');
+    } else {
+      logger.log('env.example file not found.');
+    }
+
     logger.log(`Serving SPA from ${clientPath}` + (basePath ? `, mounted at ${basePath}/` : ''));
   }
 
