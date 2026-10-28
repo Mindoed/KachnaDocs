@@ -1,9 +1,32 @@
 <script setup lang="ts">
-import { Empty, EmptyTitle } from '@/components/ui/empty'
+import { Skeleton } from '@/components/ui/skeleton'
+import { SidebarGroup, SidebarContent, SidebarFooter, SidebarHeader } from '@/components/ui/sidebar'
+import SkeletonIcon from '@/components/Skeletons/SkeletonIcon.vue'
 </script>
 
 <template>
-  <Empty>
-    <EmptyTitle>This is EmptyLeftSidebar component</EmptyTitle>
-  </Empty>
+  <div class="flex min-h-0 flex-1 flex-col">
+    <SidebarHeader>
+      <div class="flex flex-row gap-1 items-center m-auto">
+        <SkeletonIcon />
+        <SkeletonIcon />
+        <SkeletonIcon />
+        <SkeletonIcon />
+      </div>
+      <Skeleton class="h-10" />
+    </SidebarHeader>
+
+    <SidebarContent>
+      <SidebarGroup class="min-h-0 flex-1">
+        <Skeleton class="flex-1"> </Skeleton>
+      </SidebarGroup>
+      <SidebarGroup class="min-h-0 flex-1">
+        <Skeleton class="flex-1" />
+      </SidebarGroup>
+    </SidebarContent>
+
+    <SidebarFooter>
+      <Skeleton class="h-10" />
+    </SidebarFooter>
+  </div>
 </template>
