@@ -33,7 +33,11 @@ const store = usePanelsStore()
     size="icon"
     class="self-center"
     v-for="p in getAllPanelsByLocation(PanelLocation.RightSidebar)"
-    v-show="rightSidebarOpen && store.availablePanelsRightSidebar?.includes(p.id)"
+    v-show="
+      rightSidebarOpen &&
+      store.countOfAvaibleRightSidebar > 1 &&
+      store.availablePanelsRightSidebar?.includes(p.id)
+    "
     :key="p.id"
     :class="{ 'bg-accent': store.activePanelIdRightSidebar === p.id }"
     @click="store.setActiveSidePanel(PanelLocation.RightSidebar, p.id)"
