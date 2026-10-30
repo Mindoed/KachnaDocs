@@ -5,6 +5,8 @@ import { createPanel, PanelLocation, PanelMainView } from '../../../types/panel.
 import { registerPanel } from './panelRegistry.ts'
 
 export function registerDefaultPanels(): void {
+  // TODO: This function should only contain one MainView group's panels
+
   registerPanel(
     PanelLocation.LeftSidebar,
     PanelMainView.EmptyView,
@@ -27,7 +29,7 @@ export function registerDefaultPanels(): void {
 
   registerPanel(
     PanelLocation.RightSidebar,
-    PanelMainView.EmptyView,
+    PanelMainView.EditorView,
     createPanel(
       'Empty Right Sidebar',
       BookDashed,
@@ -48,18 +50,18 @@ export function registerDefaultPanels(): void {
 
   registerPanel(
     PanelLocation.MainView,
-    PanelMainView.DocumentView,
+    PanelMainView.EditorView,
     createPanel(
       'Empty Page With Only Left Sidebar',
-      BookDashed,
-      defineAsyncComponent(() => import('@/components/EmptyComponents/EmptyRightSidebar.vue')),
-      PanelMainView.DocumentView,
+      NotebookPen,
+      defineAsyncComponent(() => import('@/components/Editor/EditorView.vue')),
+      PanelMainView.EditorView,
     ),
   )
 
   registerPanel(
     PanelLocation.LeftSidebar,
-    PanelMainView.DocumentView,
+    PanelMainView.EditorView,
     createPanel(
       'Empty Right Sidebar From Document View',
       BookDashed,

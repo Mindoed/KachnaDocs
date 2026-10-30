@@ -55,6 +55,7 @@ export const enum PanelLocation {
 
 export const enum PanelMainView {
   DocumentView = 'document-view',
+  EditorView = 'editor-view',
   HomeView = 'home-view',
   EmptyView = 'empty-view', // used for the empty page
 

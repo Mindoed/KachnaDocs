@@ -11,19 +11,22 @@ import { usePanelsStore } from '../../../stores/panelsStorage.ts'
 const panelRegistry: PanelMap = {
   [PanelLocation.LeftSidebar]: {
     [PanelMainView.DocumentView]: shallowReactive<Panel[]>([]),
+    [PanelMainView.EditorView]: shallowReactive<Panel[]>([]),
     [PanelMainView.HomeView]: shallowReactive<Panel[]>([]),
     [PanelMainView.EmptyView]: shallowReactive<Panel[]>([]),
   },
 
   [PanelLocation.RightSidebar]: {
     [PanelMainView.DocumentView]: shallowReactive<Panel[]>([]),
+    [PanelMainView.EditorView]: shallowReactive<Panel[]>([]),
     [PanelMainView.HomeView]: shallowReactive<Panel[]>([]),
     [PanelMainView.EmptyView]: shallowReactive<Panel[]>([]),
   },
   [PanelLocation.MainView]: {
-    [PanelMainView.EmptyView]: shallowReactive<Panel[]>([]),
     [PanelMainView.DocumentView]: shallowReactive<Panel[]>([]),
+    [PanelMainView.EditorView]: shallowReactive<Panel[]>([]),
     [PanelMainView.HomeView]: shallowReactive<Panel[]>([]),
+    [PanelMainView.EmptyView]: shallowReactive<Panel[]>([]),
   },
 }
 
@@ -52,13 +55,30 @@ const panelsAll: Map<string, Panel> = new Map()
  *
  * Average complexity: O(1)
  */
-export function registerPanel(location: PanelLocation, group: PanelMainView, panel: Panel): void {
+export function registerPanel(
+  location: PanelLocation,
+  group: PanelMainView,
+  panel: Panel | Panel[],
+): void {
   // if (panel.enabled && !panel.enabled()) {
   //   console.warn(`Panel '${panel.id}' is not enabled and will not be registered.`)
   //   return
   // }
 
   const lookup = panelsByLocation[location]
+
+  if (Array.isArray(panel)) {
+    for (const p of panel) {
+      if (lookup.has(p.id)) {
+        throw new Error(`Panel '${p.id}' is already registered at '${location}'`)
+      }
+
+      lookup.set(p.id, p)
+      panelRegistry[location][group].push(p)
+      panelArray[location].push(p)
+    }
+    return
+  }
 
   if (lookup.has(panel.id)) {
     throw new Error(`Panel '${panel.id}' is already registered at '${location}'`)

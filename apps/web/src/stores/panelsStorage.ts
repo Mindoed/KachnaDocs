@@ -11,7 +11,7 @@ import { PanelLocation } from '../types/panel.ts'
 export const usePanelsStore = defineStore('panelsStorage', {
   state: () => ({
     activeMainView: null as PanelMainView | null,
-    availableSidePanels: {} as Record<PanelLocation, string[] | null>,
+    availablePanels: {} as Record<PanelLocation, string[] | null>,
 
     [PanelLocation.LeftSidebar]: null as string | null,
     [PanelLocation.RightSidebar]: null as string | null,
@@ -32,23 +32,23 @@ export const usePanelsStore = defineStore('panelsStorage', {
     },
 
     availablePanelsLeftSidebar(state): string[] | null {
-      return state.availableSidePanels[PanelLocation.LeftSidebar] ?? null
+      return state.availablePanels[PanelLocation.LeftSidebar] ?? null
     },
 
     availablePanelsRightSidebar(state): string[] | null {
-      return state.availableSidePanels[PanelLocation.RightSidebar] ?? null
+      return state.availablePanels[PanelLocation.RightSidebar] ?? null
     },
 
     countOfAvaibleLeftSidebar(state): number {
-      return state.availableSidePanels[PanelLocation.LeftSidebar]?.length ?? 0
+      return state.availablePanels[PanelLocation.LeftSidebar]?.length ?? 0
     },
 
     countOfAvaibleRightSidebar(state): number {
-      return state.availableSidePanels[PanelLocation.RightSidebar]?.length ?? 0
+      return state.availablePanels[PanelLocation.RightSidebar]?.length ?? 0
     },
 
     countOfAvaibleMainView(state): number {
-      return state.availableSidePanels[PanelLocation.MainView]?.length ?? 0
+      return state.availablePanels[PanelLocation.MainView]?.length ?? 0
     },
   },
 
@@ -71,21 +71,20 @@ export const usePanelsStore = defineStore('panelsStorage', {
       this.activeMainView = panel.isMainView
       this[PanelLocation.MainView] = panelId
 
-      this.availableSidePanels[PanelLocation.LeftSidebar] = getAllPanelIDsByLocationAndGroup(
+      this.availablePanels[PanelLocation.LeftSidebar] = getAllPanelIDsByLocationAndGroup(
         PanelLocation.LeftSidebar,
         this.activeMainView,
       )
 
-      this.availableSidePanels[PanelLocation.RightSidebar] = getAllPanelIDsByLocationAndGroup(
+      this.availablePanels[PanelLocation.RightSidebar] = getAllPanelIDsByLocationAndGroup(
         PanelLocation.RightSidebar,
         this.activeMainView,
       )
 
-      this[PanelLocation.LeftSidebar] =
-        this.availableSidePanels[PanelLocation.LeftSidebar]?.[0] ?? null
+      this[PanelLocation.LeftSidebar] = this.availablePanels[PanelLocation.LeftSidebar]?.[0] ?? null
 
       this[PanelLocation.RightSidebar] =
-        this.availableSidePanels[PanelLocation.RightSidebar]?.[0] ?? null
+        this.availablePanels[PanelLocation.RightSidebar]?.[0] ?? null
     },
 
     setActiveSidePanel(location: PanelLocation, panelId: string) {
@@ -93,7 +92,7 @@ export const usePanelsStore = defineStore('panelsStorage', {
         throw new Error('Cannot activate a side panel in the main view location.')
       }
 
-      const availablePanels = this.availableSidePanels[location]
+      const availablePanels = this.availablePanels[location]
       if (!availablePanels || !availablePanels.includes(panelId)) {
         throw new Error(`Panel with ID "${panelId}" is not available in ${location}.`)
       }
