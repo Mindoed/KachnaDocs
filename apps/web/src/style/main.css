@@ -2,6 +2,9 @@
 
 @import 'tailwindcss';
 @import 'tw-animate-css';
+@import '../components/Editor/tiptap.css';
+
+@plugin '@tailwindcss/typography';
 
 @custom-variant dark (&:is(.dark *));
 

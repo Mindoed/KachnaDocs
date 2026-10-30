@@ -1,5 +1,5 @@
 import { markRaw, defineAsyncComponent } from 'vue'
-import { BookDashed, Files, Search, Settings } from '@lucide/vue'
+import { BookDashed, Files, NotebookPen, Search, Settings } from '@lucide/vue'
 
 import { createPanel, PanelLocation, PanelMainView } from '../../../types/panel.ts'
 import { registerPanel } from './panelRegistry.ts'

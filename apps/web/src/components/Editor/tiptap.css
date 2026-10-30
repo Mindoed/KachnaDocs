@@ -1,0 +1,22 @@
+/* The scrollbox is the wrapper, so the editor inside it must size to its own content
+   rather than to the wrapper. As a stretched flex item .tiptap got the wrapper's
+   *visible* height as its used height (the cross axis of a definite-height flex
+   container), so a document longer than one screen overflowed the box instead of
+   growing it, and everything past the first screenful sat outside the border-x-2 —
+   which then scrolled out of view and left the rest of the page bare. A plain block
+   child grows with the document, and min-h-full still fills the pane when the
+   document is short. */
+.tiptap-container {
+  @apply mx-auto  grow overflow-y-scroll overflow-x-hidden;
+}
+
+.tiptap {
+  @apply prose max-w-2xl max-md:prose-sm prose-p:my-0 dark:prose-invert;
+  @apply mx-auto min-h-full mt-8 px-10 pt-5 focus:outline-none border-x-2 border-t-2;
+}
+
+/* Code is the one thing that can still outgrow the measure (65ch from `prose`); let it
+   scroll inside the column instead of running through the right border. */
+.tiptap pre {
+  @apply overflow-x-auto;
+}

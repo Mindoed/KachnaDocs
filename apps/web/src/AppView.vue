@@ -36,7 +36,7 @@ const LEFT_SIDEBAR_WIDTH = 256
 const LEFT_SIDEBAR_MIN_WIDTH = 192
 const RIGHT_SIDEBAR_WIDTH = 256
 const RIGHT_SIDEBAR_MIN_WIDTH = 192
-const CONTENT_MIN_WIDTH = 500
+const CONTENT_MIN_WIDTH = 576 /* 36rem (576px) */
 
 /** Shape of GET /api/auth/me — the user is nested under `user`. */
 interface MeResponse {
@@ -71,9 +71,7 @@ onMounted(async () => {
     console.log('Authenticated user loaded:', user.value)
   } catch (error) {
     console.error('Could not load authenticated user.', error)
-    // A hard navigation on purpose (no router instance here, and a fresh document
-    // is the point after an unauthenticated start), so the mount point has to come
-    // from appUrl rather than a bare '/auth'.
+
     window.location.href = appUrl('/auth')
   } finally {
     registerDefaultPanels()
@@ -110,6 +108,8 @@ onMounted(async () => {
         @toggle-right-sidebar="rightSidebarOpen = !rightSidebarOpen"
       />
       <LeftRibbon :user="user" />
+
+      <!-- LEFT SIDEBAR PANEL -->
       <ResizablePanelGroup direction="horizontal" class="h-full min-w-0 flex-1">
         <ResizablePanel
           ref="leftPanel"
@@ -124,12 +124,11 @@ onMounted(async () => {
         >
           <LeftSidebar />
         </ResizablePanel>
+
         <ResizableHandle />
-        <!-- Pixels again, because that is the only way the floor means pixels: reka-ui converts a
-             px panel's minSize against the measured group width, but passes a `%` panel's through
-             as a percentage — :min-size="320" there would mean 320%. No defaultSize, so the panel
-             still opens at whatever width the two sidebars leave. -->
-        <ResizablePanel class="flex min-w-0 flex-col" size-unit="px" :min-size="CONTENT_MIN_WIDTH">
+
+        <!-- MAIN VIEW PANEl -->
+        <ResizablePanel class="flex min-w-0" size-unit="px" :min-size="CONTENT_MIN_WIDTH">
           <component
             :is="p.component"
             v-for="p in getAllPanelsByLocation(PanelLocation.MainView)"
@@ -137,7 +136,10 @@ onMounted(async () => {
             :key="p.id"
           />
         </ResizablePanel>
+
         <ResizableHandle />
+
+        <!-- RIGHT SIDEBAR PANEL -->
         <ResizablePanel
           ref="rightPanel"
           class="min-w-0"
