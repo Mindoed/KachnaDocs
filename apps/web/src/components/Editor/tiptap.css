@@ -12,7 +12,7 @@
 
 .tiptap {
   @apply prose max-w-2xl max-md:prose-sm prose-p:my-0 dark:prose-invert;
-  @apply mx-auto min-h-full mt-8 px-10 pt-5 focus:outline-none border-x-2 border-t-2;
+  @apply mx-auto min-h-full mt-8 px-10 pt-5 pb-20 mb-20 focus:outline-none border-2;
 }
 
 /* Code is the one thing that can still outgrow the measure (65ch from `prose`); let it
