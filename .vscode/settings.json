@@ -26,5 +26,6 @@
     "editor.tabSize": 2,
     "editor.insertSpaces": true
   },
-  "prettier.requireConfig": true
+  "prettier.requireConfig": true,
+  "github-actions.workflows.pinned.workflows": [".github/workflows/release.yml"]
 }
