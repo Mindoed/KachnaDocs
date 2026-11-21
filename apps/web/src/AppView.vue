@@ -71,7 +71,6 @@ onMounted(async () => {
     console.log('Authenticated user loaded:', user.value)
   } catch (error) {
     console.error('Could not load authenticated user.', error)
-
     window.location.href = appUrl('/auth')
   } finally {
     registerDefaultPanels()

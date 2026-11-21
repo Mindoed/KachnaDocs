@@ -1,0 +1,29 @@
+{
+  "name": "collab",
+  "version": "1.0.0",
+  "description": "Collaboration server (Hocuspocus)",
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "src/main.ts",
+  "scripts": {
+    "dev": "node --watch src/main.ts",
+    "start": "node src/main.ts",
+    "build": "tsc -p tsconfig.json",
+    "test": "echo 'no tests' && exit 0"
+  },
+  "dependencies": {
+    "@hocuspocus/extension-database": "^4.9.0",
+    "@hocuspocus/server": "^4.9.0",
+    "@kachnadocs/shared": "*",
+    "dotenv": "^18.0.3",
+    "jose": "^6.2.18",
+    "pg": "^8.23.1",
+    "yjs": "^13.6.33"
+  },
+  "devDependencies": {
+    "@types/node": "^24.19.2",
+    "@types/pg": "^8.15.4",
+    "typescript": "^6.0.2"
+  }
+}

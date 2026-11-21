@@ -6,8 +6,11 @@
    which then scrolled out of view and left the rest of the page bare. A plain block
    child grows with the document, and min-h-full still fills the pane when the
    document is short. */
+/* min-h-0 because the container is now a flex child (the editor pane stacks a
+   status bar above it): a flex item's default min-height of auto would refuse to
+   shrink, and overflow would scroll nothing. */
 .tiptap-container {
-  @apply mx-auto  grow overflow-y-scroll overflow-x-hidden;
+  @apply mx-auto min-h-0 grow overflow-y-scroll overflow-x-hidden;
 }
 
 .tiptap {
@@ -19,4 +22,31 @@
    scroll inside the column instead of running through the right border. */
 .tiptap pre {
   @apply overflow-x-auto;
+}
+
+/* Give a remote user a caret */
+.collaboration-carets__caret {
+  border-left: 1px solid #0d0d0d;
+  border-right: 1px solid #0d0d0d;
+  margin-left: -1px;
+  margin-right: -1px;
+  pointer-events: none;
+  position: relative;
+  word-break: normal;
+}
+
+/* Render the username above the caret */
+.collaboration-carets__label {
+  border-radius: 3px 3px 3px 0;
+  color: #0d0d0d;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 600;
+  left: -1px;
+  line-height: normal;
+  padding: 0.1rem 0.3rem;
+  position: absolute;
+  top: -1.4em;
+  user-select: none;
+  white-space: nowrap;
 }
